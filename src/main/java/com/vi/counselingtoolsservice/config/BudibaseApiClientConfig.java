@@ -20,8 +20,8 @@ public class BudibaseApiClientConfig {
   @Value("${budibase.api.key}")
   private String budibaseApiKey;
 
-  @Bean
-  public DefaultApi messageControllerApi() {
+  @Bean(name = "budibaseApi")
+  public DefaultApi defaultApi() {
     final RestTemplate restTemplate = new RestTemplate();
     final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
     final HttpClient httpClient = HttpClientBuilder.create()

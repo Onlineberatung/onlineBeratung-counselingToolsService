@@ -53,28 +53,30 @@ components:
       in: header
       name: x-budibase-api-key
   schemas:
+    App:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        budibase_id:
+          type: string
+        url:
+          type: string
+        Title:
+          type: string
+        Description:
+          type: string
+        Enabled:
+          type: integer
+          format: int32
     AppsQueryResponse:
       type: object
       properties:
         data:
           type: array
           items:
-            type: object
-            properties:
-              id:
-                type: integer
-                format: int32
-              budibase_id:
-                type: string
-              url:
-                type: string
-              Title:
-                type: string
-              Description:
-                type: string
-              Enabled:
-                type: integer
-                format: int32
+            $ref: '#/components/schemas/App'
     User:
       type: object
       properties:

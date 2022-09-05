@@ -21,24 +21,7 @@ paths:
 
 components:
   schemas:
-    App:
-      type: object
-      properties:
-          id:
-            type: integer
-            format: int32
-          budibase_id:
-            type: string
-          url:
-            type: string
-          Title:
-            type: string
-          Description:
-            type: string
-          Enabled:
-            type: integer
-            format: int32
     ArrayOfApps:
       type: array
       items:
-        $ref: '#/components/schemas/App'
+        $ref: './../services/budibaseApi.yaml#/components/schemas/App'
