@@ -1,0 +1,44 @@
+openapi: 3.0.1
+info:
+  title: Counseling Tools Service
+  description: 'Spec for counselingToolsService'
+  version: 0.1.0
+
+paths:
+  /apps:
+    get:
+      summary: Get all available consulting apps
+      operationId: getApps
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArrayOfApps'
+      security:
+        - Bearer: []
+
+components:
+  schemas:
+    App:
+      type: object
+      properties:
+          id:
+            type: integer
+            format: int32
+          budibase_id:
+            type: string
+          url:
+            type: string
+          Title:
+            type: string
+          Description:
+            type: string
+          Enabled:
+            type: integer
+            format: int32
+    ArrayOfApps:
+      type: array
+      items:
+        $ref: '#/components/schemas/App'
