@@ -27,8 +27,6 @@ paths:
         - ApiKeyAuth: [ ]
   /api/public/v1/users/:
     get:
-      tags:
-        - consultant
       summary: Get budibase user
       operationId: getUser
       parameters:
