@@ -1,4 +1,4 @@
-package com.vi.counselingtoolsservice.api.controller.authorization;
+package com.vi.counselingtoolsservice.api.controller;
 
 import com.vi.counselingtoolsservice.api.facade.AppFacade;
 import com.vi.counselingtoolsservice.api.model.App;

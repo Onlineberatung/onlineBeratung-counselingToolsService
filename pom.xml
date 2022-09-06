@@ -131,6 +131,31 @@
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
         </dependency>
+        <!-- Test scope dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <artifactId>powermock-module-junit4</artifactId>
+            <groupId>org.powermock</groupId>
+            <scope>test</scope>
+            <version>2.0.2</version>
+        </dependency>
+        <dependency>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <groupId>org.powermock</groupId>
+            <scope>test</scope>
+            <version>2.0.2</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.name}</finalName>
