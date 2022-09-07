@@ -4,6 +4,8 @@ import com.vi.counselingtoolsservice.api.facade.ToolsFacade;
 import com.vi.counselingtoolsservice.api.model.Tool;
 import com.vi.counselingtoolsservice.generated.api.controller.ToolsApi;
 import java.util.List;
+import java.util.Map;
+import javax.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-public class AppsController implements ToolsApi {
+public class ToolsController implements ToolsApi {
 
   @NonNull
   private final ToolsFacade toolsFacade;
@@ -24,4 +26,9 @@ public class AppsController implements ToolsApi {
     return new ResponseEntity<>(toolsFacade.getAssignedTools(adviceSeekerId), HttpStatus.OK);
   }
 
+  @Override
+  public ResponseEntity<List<Tool>> assignTools(String adviceSeekerId,
+      @Valid List<String> tools) {
+    return new ResponseEntity<>(toolsFacade.assignTools(adviceSeekerId, tools), HttpStatus.OK);
+  }
 }

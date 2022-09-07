@@ -5,11 +5,17 @@ info:
   version: 0.2.0
 
 paths:
-  /api/public/v1/queries/query_datasource_plus_e6abf1178d86401d83b589a6c9dd80d1_4304f849f9ba46aa8009921e2c8dfc12:
+  /api/public/v1/queries/{queryId}:
     post:
       summary: Get all available consulting apps
       operationId: getApps
       parameters:
+        - name: queryId
+          in: path
+          description: Query ID
+          schema:
+            type: string
+          required: true
         - name: x-budibase-app-id
           in: header
           description: Budibase App ID
@@ -45,7 +51,29 @@ paths:
                 $ref: '#/components/schemas/User'
       security:
         - ApiKeyAuth: [ ]
-
+    put:
+      summary: Assign tools to advice seeker
+      operationId: assignTools
+      parameters:
+        - name: budibaseUserId
+          in: path
+          description: ID of budibase user
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/AssignToolsRequest'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -74,6 +102,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/App'
+    AssignToolsRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        roles:
+          type: object
+          additionalProperties: true
     User:
       type: object
       properties:

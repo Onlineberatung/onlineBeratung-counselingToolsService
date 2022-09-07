@@ -31,6 +31,9 @@ public class ToolsFacade {
   private String budibaseAppBase;
 
   public List<Tool> getAssignedTools(String adviceSeekerId) {
+
+    //TODO: check is advice seeker assigned to consultant
+
     Set<String> sharedTools = getSharedTools(adviceSeekerId);
     ObjectMapper objectMapper = getObjectMapper();
     List<Tool> tools = new ArrayList<>();
@@ -45,13 +48,18 @@ public class ToolsFacade {
           tool.setSharedWithAdviceSeeker(false);
         }
         tool.setSharedWithConsultant(false);
-        tool.setUrl(budibaseAppBase+"/apps"+tool.getUrl());
+        tool.setUrl(budibaseAppBase + "/apps" + tool.getUrl());
         tools.add(tool);
       } catch (JsonProcessingException e) {
         throw new InternalServerErrorException("Could not convert budibase apps api response.");
       }
     }
     return tools;
+  }
+
+  public List<Tool> assignTools(String adviceSeekerId, List<String> appIds) {
+    User user = budibaseApiService.assignTools(adviceSeekerId, appIds);
+    return getAssignedTools(user.getData().getId());
   }
 
   private ObjectMapper getObjectMapper() {
@@ -62,8 +70,7 @@ public class ToolsFacade {
   }
 
   private Set<String> getSharedTools(String adviceSeekerId) {
-    String budibaseId = "us_" + adviceSeekerId;
-    User budibaseUser = budibaseApiService.getBudibaseUser(budibaseId);
+    User budibaseUser = budibaseApiService.getBudibaseUser(adviceSeekerId);
     Map<String, String> roles = (Map<String, String>) budibaseUser.getData().getRoles();
     Set<String> sharedTools = roles.keySet();
     return sharedTools;
