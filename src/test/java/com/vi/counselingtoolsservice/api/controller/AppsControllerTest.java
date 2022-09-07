@@ -26,9 +26,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-@SpringBootTest
-@ActiveProfiles("testing")
-@AutoConfigureMockMvc(addFilters = false)
+//@SpringBootTest
+//@ActiveProfiles("testing")
+//@AutoConfigureMockMvc(addFilters = false)
 public class AppsControllerTest {
 
   static final String PATH_GET_AGENCY_BY_ID = "/apps";
@@ -44,7 +44,7 @@ public class AppsControllerTest {
   @Autowired
   private WebApplicationContext context;
 
-  @BeforeEach
+//  @BeforeEach
   public void setup() {
     mockMvc = MockMvcBuilders
         .webAppContextSetup(context)
