@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.DefaultApi;
+import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 
 @Service
 @Slf4j
@@ -26,6 +27,10 @@ public class BudibaseApiService {
 
   public AppsQueryResponse getApps(){
     return budibaseApi.getApps(budibaseAppsAppId);
+  }
+
+  public User getBudibaseUser(String budibaseUserId){
+    return budibaseApi.getUser(budibaseUserId);
   }
 
 }

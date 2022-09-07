@@ -25,7 +25,7 @@ paths:
                 $ref: '#/components/schemas/AppsQueryResponse'
       security:
         - ApiKeyAuth: [ ]
-  /api/public/v1/users/:
+  /api/public/v1/users/{budibaseUserId}:
     get:
       summary: Get budibase user
       operationId: getUser
@@ -59,17 +59,14 @@ components:
         id:
           type: integer
           format: int32
-        budibase_id:
+        budibaseId:
           type: string
         url:
           type: string
-        Title:
+        title:
           type: string
-        Description:
+        description:
           type: string
-        Enabled:
-          type: integer
-          format: int32
     AppsQueryResponse:
       type: object
       properties:
