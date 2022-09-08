@@ -59,6 +59,8 @@ components:
     Tool:
       type: object
       properties:
+        toolId:
+          type: string
         url:
           type: string
         title:
