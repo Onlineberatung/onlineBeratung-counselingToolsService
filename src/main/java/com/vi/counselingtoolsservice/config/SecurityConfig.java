@@ -1,5 +1,6 @@
 package com.vi.counselingtoolsservice.config;
 
+import com.vi.counselingtoolsservice.api.authorization.Authority;
 import com.vi.counselingtoolsservice.api.authorization.Authority.AuthorityValue;
 import com.vi.counselingtoolsservice.api.authorization.RoleAuthorizationAuthorityMapper;
 import com.vi.counselingtoolsservice.filter.StatelessCsrfFilter;
@@ -15,6 +16,7 @@ import org.keycloak.adapters.springsecurity.filter.KeycloakSecurityContextReques
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -29,7 +31,7 @@ import org.springframework.security.web.csrf.CsrfFilter;
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
   public static final String[] WHITE_LIST =
-      new String[]{"/error", "/tools/**"};
+      new String[]{"/error"};
 
   private final KeycloakClientRequestFactory keycloakClientRequestFactory;
 
@@ -60,12 +62,15 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
     httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .sessionAuthenticationStrategy(sessionAuthenticationStrategy()).and().authorizeRequests()
-
         .antMatchers(WHITE_LIST).permitAll()
-
+        .antMatchers(HttpMethod.GET, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
+        AuthorityValue.CONSULTANT_DEFAULT, AuthorityValue.USER_DEFAULT)
+        .antMatchers(HttpMethod.PUT, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
+        AuthorityValue.CONSULTANT_DEFAULT)
+        .antMatchers("/tools/{consultantId:[0-9A-Za-z-]+}/{toolPath:[0-9A-Za-z-]+}").hasAnyAuthority(
+        AuthorityValue.CONSULTANT_DEFAULT)
         .anyRequest()
-        .hasAnyAuthority(AuthorityValue.SINGLE_TENANT_ADMIN, AuthorityValue.TENANT_ADMIN,
-            AuthorityValue.TECHNICAL_DEFAULT);
+        .denyAll();
   }
 
   /**

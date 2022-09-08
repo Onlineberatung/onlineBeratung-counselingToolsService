@@ -5,6 +5,30 @@ info:
   version: 0.1.0
 
 paths:
+  /tools/{consultantId}/{toolPath}:
+    get:
+      tags:
+        - budibase-controller
+      summary: Returns url to consultant tool by toolId
+      operationId: redirectToTool
+      parameters:
+        - name: consultantId
+          in: path
+          description: Onlineberatung Consultant ID
+          required: true
+          schema:
+            type: string
+        - name: toolPath
+          in: path
+          description: Path to tools
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: successful operation
+      security:
+        - Bearer: []
   /tools/{adviceSeekerId}:
     get:
       tags:
@@ -29,7 +53,7 @@ paths:
         - Bearer: []
     put:
       summary: Assign tools to advice seeker
-      operationId: assignTools
+      operationId: assignAdviceSeekerTools
       parameters:
         - name: adviceSeekerId
           in: path

@@ -3,8 +3,8 @@ package com.vi.counselingtoolsservice.api.controller;
 import com.vi.counselingtoolsservice.api.facade.ToolsFacade;
 import com.vi.counselingtoolsservice.api.model.Tool;
 import com.vi.counselingtoolsservice.generated.api.controller.ToolsApi;
+import java.net.URI;
 import java.util.List;
-import java.util.Map;
 import javax.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,14 @@ public class ToolsController implements ToolsApi {
   }
 
   @Override
-  public ResponseEntity<List<Tool>> assignTools(String adviceSeekerId,
+  public ResponseEntity<List<Tool>> assignAdviceSeekerTools(String adviceSeekerId,
       @Valid List<String> tools) {
-    return new ResponseEntity<>(toolsFacade.assignTools(adviceSeekerId, tools), HttpStatus.OK);
+    return new ResponseEntity<>(toolsFacade.assignAdviceSeekerTools(adviceSeekerId, tools), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<Void> redirectToTool(String consultantId, String toolPath) {
+    toolsFacade.assignConsultantTools(consultantId);
+    return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT).location(toolsFacade.getToolUrl(toolPath)).build();
   }
 }

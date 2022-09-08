@@ -95,6 +95,8 @@ components:
           type: string
         description:
           type: string
+        type:
+          type: string
     AppsQueryResponse:
       type: object
       properties:

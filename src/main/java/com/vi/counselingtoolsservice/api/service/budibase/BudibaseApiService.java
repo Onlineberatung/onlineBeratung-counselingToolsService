@@ -7,6 +7,7 @@ import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignTools
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class BudibaseApiService {
     return getBudibaseApi().getUser(convertAdviceSeekerId2BudibaseUserId(adviceSeekerId));
   }
 
-  public User assignTools(String adviceSeekerId, List<String> appIds) {
+  public User assignTools2OnlineBeratungUser(String adviceSeekerId, List<String> appIds) {
     AssignToolsRequest request = new AssignToolsRequest();
     request.setRoles(new HashMap<>());
     request.setStatus("active");
@@ -64,4 +65,10 @@ public class BudibaseApiService {
     return api;
   }
 
+  public void assignConsultantTools(String consultantId) {
+    List<String> consultantAppIds = getApps().getData().stream()
+        .filter(el -> "CONSULTANT_APP".equals(el.getType())).map(el -> el.getBudibaseId())
+        .collect(Collectors.toList());
+    assignTools2OnlineBeratungUser(consultantId, consultantAppIds);
+  }
 }
