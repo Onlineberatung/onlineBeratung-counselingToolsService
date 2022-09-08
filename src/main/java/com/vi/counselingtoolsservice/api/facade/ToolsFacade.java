@@ -1,10 +1,12 @@
 package com.vi.counselingtoolsservice.api.facade;
 
+import com.vi.counselingtoolsservice.api.exception.httpresponses.BadRequestException;
 import com.vi.counselingtoolsservice.api.model.Tool;
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiService;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -13,6 +15,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
 @Component
 @RequiredArgsConstructor
 public class ToolsFacade {
@@ -54,6 +57,11 @@ public class ToolsFacade {
 
   private Set<String> getSharedTools(String adviceSeekerId) {
     User budibaseUser = budibaseApiService.getBudibaseUser(adviceSeekerId);
+
+    if(budibaseUser.getData().getId() == null){
+      return new HashSet<>();
+    }
+
     Map<String, String> roles = (Map<String, String>) budibaseUser.getData().getRoles();
     Set<String> sharedTools = roles.keySet();
     return sharedTools;
