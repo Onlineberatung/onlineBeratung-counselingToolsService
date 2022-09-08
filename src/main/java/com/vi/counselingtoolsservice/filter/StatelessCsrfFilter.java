@@ -1,5 +1,9 @@
 package com.vi.counselingtoolsservice.filter;
 
+import com.vi.counselingtoolsservice.config.CsrfSecurityProperties;
+import java.util.stream.Stream;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
@@ -18,63 +22,84 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static com.vi.counselingtoolsservice.config.SecurityConfig.WHITE_LIST;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * This custom filter checks CSRF cookie and header token for equality
  *
  */
+
+/** This custom filter checks CSRF cookie and header token for equality. */
 public class StatelessCsrfFilter extends OncePerRequestFilter {
 
-  private final RequestMatcher requireCsrfProtectionMatcher = new DefaultRequiresCsrfMatcher();
+  private final RequestMatcher requireCsrfProtectionMatcher;
   private final AccessDeniedHandler accessDeniedHandler = new AccessDeniedHandlerImpl();
-  private final String csrfCookieProperty;
-  private final String csrfHeaderProperty;
+  private final CsrfSecurityProperties csrfSecurityProperties;
 
-  public StatelessCsrfFilter(String cookieProperty, String headerProperty) {
-    this.csrfCookieProperty = cookieProperty;
-    this.csrfHeaderProperty = headerProperty;
+  public StatelessCsrfFilter(CsrfSecurityProperties csrfSecurityProperties) {
+    this.csrfSecurityProperties = csrfSecurityProperties;
+    this.requireCsrfProtectionMatcher = new DefaultRequiresCsrfMatcher(this.csrfSecurityProperties);
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
+  public void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
 
     if (requireCsrfProtectionMatcher.matches(request)) {
-      final String csrfTokenValue = request.getHeader(csrfHeaderProperty);
-      final Cookie[] cookies = request.getCookies();
+      final String csrfTokenValue =
+          request.getHeader(this.csrfSecurityProperties.getHeader().getProperty());
+      String csrfCookieValue = retrieveCsrfCookieValue(request);
 
-      String csrfCookieValue = null;
-      if (cookies != null) {
-        for (Cookie cookie : cookies) {
-          if (cookie.getName().equals(csrfCookieProperty)) {
-            csrfCookieValue = cookie.getValue();
-          }
-        }
-      }
-
-      if (csrfTokenValue == null || !csrfTokenValue.equals(csrfCookieValue)) {
-        accessDeniedHandler.handle(request, response,
-            new AccessDeniedException("Missing or non-matching CSRF-token"));
+      if (isNull(csrfTokenValue) || !csrfTokenValue.equals(csrfCookieValue)) {
+        accessDeniedHandler.handle(
+            request, response, new AccessDeniedException("Missing or non-matching CSRF-token"));
         return;
       }
     }
     filterChain.doFilter(request, response);
   }
 
-  public static final class DefaultRequiresCsrfMatcher implements RequestMatcher {
-    private final Pattern allowedMethods = Pattern.compile("^(HEAD|TRACE|OPTIONS|GET)$");
+  private String retrieveCsrfCookieValue(HttpServletRequest request) {
+    final Cookie[] cookies = request.getCookies();
+    return isNull(cookies)
+        ? null
+        : Stream.of(cookies)
+            .filter(
+                cookie ->
+                    cookie.getName().equals(this.csrfSecurityProperties.getCookie().getProperty()))
+            .map(Cookie::getValue)
+            .findFirst()
+            .orElse(null);
+  }
+
+  @RequiredArgsConstructor
+  private static final class DefaultRequiresCsrfMatcher implements RequestMatcher {
+
+    private final Pattern allowedMethods = Pattern.compile("^(HEAD|TRACE|OPTIONS)$");
+    private final @NonNull CsrfSecurityProperties csrfSecurityProperties;
 
     @Override
     public boolean matches(HttpServletRequest request) {
+      return !(isWhiteListUrl(request) || isWhiteListHeader(request) || isAllowedMethod(request));
+    }
 
-      // Allow specific whitelist items to disable CSRF protection for Swagger UI documentation
-      List<String> csrfWhitelist = new ArrayList<>(Arrays.asList(WHITE_LIST));
-      if (csrfWhitelist.parallelStream()
-          .anyMatch(request.getRequestURI().toLowerCase()::contains)) {
-        return false;
-      }
+    private boolean isWhiteListUrl(HttpServletRequest request) {
+      List<String> csrfWhitelist =
+          new ArrayList<>(Arrays.asList(csrfSecurityProperties.getWhitelist().getConfigUris()));
+      csrfWhitelist.addAll(Arrays.asList(csrfSecurityProperties.getWhitelist().getAdminUris()));
+      return csrfWhitelist.parallelStream()
+          .anyMatch(request.getRequestURI().toLowerCase()::contains);
+    }
 
-      return !allowedMethods.matcher(request.getMethod()).matches();
+    private boolean isWhiteListHeader(HttpServletRequest request) {
+      return isNotBlank(
+          request.getHeader(this.csrfSecurityProperties.getWhitelist().getHeader().getProperty()));
+    }
+
+    private boolean isAllowedMethod(HttpServletRequest request) {
+      return allowedMethods.matcher(request.getMethod()).matches();
     }
   }
 }
