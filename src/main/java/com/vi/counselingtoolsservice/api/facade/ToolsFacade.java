@@ -49,16 +49,9 @@ public class ToolsFacade {
       } else {
         tool.setSharedWithAdviceSeeker(false);
       }
-
       tools.add(tool);
-
     }
     return tools;
-  }
-
-  public List<Tool> assignAdviceSeekerTools(String adviceSeekerId, List<String> appIds) {
-    User user = budibaseApiService.assignTools2OnlineBeratungUser(adviceSeekerId, appIds);
-    return getAssignedTools(user.getData().getId());
   }
 
   private Set<String> getSharedTools(String adviceSeekerId) {
@@ -71,10 +64,6 @@ public class ToolsFacade {
     Map<String, String> roles = (Map<String, String>) budibaseUser.getData().getRoles();
     Set<String> sharedTools = roles.keySet();
     return sharedTools;
-  }
-
-  public void assignConsultantTools(String consultantId) {
-    budibaseApiService.assignConsultantTools(consultantId);
   }
 
   public URI getToolUrl(String toolPath) {
