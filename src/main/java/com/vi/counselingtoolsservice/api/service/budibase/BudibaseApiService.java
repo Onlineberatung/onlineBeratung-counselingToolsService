@@ -10,8 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.WebApplicationContext;
@@ -33,7 +36,8 @@ public class BudibaseApiService {
   @Value("${budibase.api.url}")
   private String budibaseApiUrl;
 
-  @Inject
+  @Autowired
+  @Qualifier("budibaseClientWithApiKey")
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
@@ -62,9 +66,8 @@ public class BudibaseApiService {
     return "us_" + adviceSeekerId;
   }
 
-  @Bean
-  @Scope(value = WebApplicationContext.SCOPE_REQUEST)
-  public DefaultApi getBudibaseApi() {
+  @Bean(name="budibaseClientWithApiKey")
+  public DefaultApi buildBudibaseApiClient() {
     DefaultApi api = new DefaultApi();
     com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient apiClient = new ApiClient();
     apiClient.setBasePath(budibaseApiUrl);
