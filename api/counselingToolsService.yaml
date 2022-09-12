@@ -5,23 +5,97 @@ info:
   version: 0.1.0
 
 paths:
-  /apps:
+  /tools/{consultantId}/{toolPath}:
     get:
-      summary: Get all available consulting apps
-      operationId: getApps
+      tags:
+        - budibase-controller
+      summary: Returns url to consultant tool by toolId
+      operationId: redirectToTool
+      parameters:
+        - name: consultantId
+          in: path
+          description: Onlineberatung Consultant ID
+          required: true
+          schema:
+            type: string
+        - name: toolPath
+          in: path
+          description: Path to tools
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: successful operation
+      security:
+        - Bearer: []
+  /tools/{adviceSeekerId}:
+    get:
+      tags:
+        - budibase-controller
+      summary: Get a list of all assigned tools for given advice seeker
+      operationId: getAdviceSeekerAssignedTools
+      parameters:
+        - name: adviceSeekerId
+          in: path
+          description: BudiBase ID of advice seeker
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ArrayOfApps'
+                $ref: '#/components/schemas/ToolsListResponse'
       security:
         - Bearer: []
-
+    put:
+      summary: Assign tools to advice seeker
+      operationId: assignAdviceSeekerTools
+      parameters:
+        - name: adviceSeekerId
+          in: path
+          description: ID of budibase user
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/AssignToolsRequest'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolsListResponse'
 components:
   schemas:
-    ArrayOfApps:
+    ToolsListResponse:
       type: array
       items:
-        $ref: './../services/budibaseApi.yaml#/components/schemas/App'
+        $ref: '#/components/schemas/Tool'
+    Tool:
+      type: object
+      properties:
+        toolId:
+          type: string
+        url:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        sharedWithAdviceSeeker:
+          type: boolean
+        sharedWithConsultant:
+          type: boolean
+    AssignToolsRequest:
+      type: array
+      items:
+        type: string

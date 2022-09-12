@@ -1,10 +1,9 @@
 package com.vi.counselingtoolsservice.config;
 
-import com.vi.counselingtoolsservice.adapters.keycloak.config.KeycloakConfig;
-import com.vi.counselingtoolsservice.api.authorization.RoleAuthorizationAuthorityMapper;
+import com.vi.counselingtoolsservice.api.authorization.Authority;
 import com.vi.counselingtoolsservice.api.authorization.Authority.AuthorityValue;
+import com.vi.counselingtoolsservice.api.authorization.RoleAuthorizationAuthorityMapper;
 import com.vi.counselingtoolsservice.filter.StatelessCsrfFilter;
-import com.vi.counselingtoolsservice.helper.AuthenticatedUser;
 import org.keycloak.adapters.KeycloakConfigResolver;
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
@@ -15,10 +14,8 @@ import org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticationProcess
 import org.keycloak.adapters.springsecurity.filter.KeycloakPreAuthActionsFilter;
 import org.keycloak.adapters.springsecurity.filter.KeycloakSecurityContextRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,28 +31,21 @@ import org.springframework.security.web.csrf.CsrfFilter;
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
   public static final String[] WHITE_LIST =
-      new String[]{"/error", "/apps"};
+      new String[]{"/error"};
 
-  @SuppressWarnings("unused")
   private final KeycloakClientRequestFactory keycloakClientRequestFactory;
 
-  @Value("${csrf.cookie.property}")
-  private String csrfCookieProperty;
-
-  @Value("${csrf.header.property}")
-  private String csrfHeaderProperty;
-
-  @Autowired
-  private Environment environment;
-
-
+  private final CsrfSecurityProperties csrfSecurityProperties;
 
   /**
    * Processes HTTP requests and checks for a valid spring security authentication for the
    * (Keycloak) principal (authorization header).
    */
-  public SecurityConfig(KeycloakClientRequestFactory keycloakClientRequestFactory) {
+  public SecurityConfig(
+      @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") KeycloakClientRequestFactory keycloakClientRequestFactory,
+      CsrfSecurityProperties csrfSecurityProperties) {
     this.keycloakClientRequestFactory = keycloakClientRequestFactory;
+    this.csrfSecurityProperties = csrfSecurityProperties;
   }
 
   /**
@@ -67,17 +57,20 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
   protected void configure(HttpSecurity http) throws Exception {
     super.configure(http);
     var httpSecurity = http.csrf().disable()
-        .addFilterBefore(new StatelessCsrfFilter(csrfCookieProperty, csrfHeaderProperty),
+        .addFilterBefore(new StatelessCsrfFilter(csrfSecurityProperties),
             CsrfFilter.class);
 
     httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .sessionAuthenticationStrategy(sessionAuthenticationStrategy()).and().authorizeRequests()
-
         .antMatchers(WHITE_LIST).permitAll()
-
+        .antMatchers(HttpMethod.GET, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
+        AuthorityValue.CONSULTANT_DEFAULT, AuthorityValue.USER_DEFAULT)
+        .antMatchers(HttpMethod.PUT, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
+        AuthorityValue.CONSULTANT_DEFAULT)
+        .antMatchers("/tools/{consultantId:[0-9A-Za-z-]+}/{toolPath:[0-9A-Za-z-]+}").hasAnyAuthority(
+        AuthorityValue.CONSULTANT_DEFAULT)
         .anyRequest()
-        .hasAnyAuthority(AuthorityValue.SINGLE_TENANT_ADMIN, AuthorityValue.TENANT_ADMIN,
-            AuthorityValue.TECHNICAL_DEFAULT);
+        .denyAll();
   }
 
   /**
@@ -131,9 +124,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
   }
 
   /**
-   * see above:
-   * {@link
-   * SecurityConfig#keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter)
+   * see above: {@link SecurityConfig#keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter)
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
   @Bean
@@ -145,9 +136,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
   }
 
   /**
-   * see above:
-   * {@link
-   * SecurityConfig#keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter)
+   * see above: {@link SecurityConfig#keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter)
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
   @Bean
@@ -159,9 +148,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
   }
 
   /**
-   * see above:
-   * {@link
-   * SecurityConfig#keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter)
+   * see above: {@link SecurityConfig#keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter)
    */
   @SuppressWarnings({"rawtypes", "unchecked"})
   @Bean
