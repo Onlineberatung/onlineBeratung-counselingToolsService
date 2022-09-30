@@ -69,6 +69,8 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         AuthorityValue.CONSULTANT_DEFAULT)
         .antMatchers("/tools/{consultantId:[0-9A-Za-z-]+}/{toolPath:[0-9A-Za-z-]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT)
+        .antMatchers("/tools/exportInitialQuestionnaire").hasAnyAuthority(
+            AuthorityValue.TENANT_ADMIN)
         .anyRequest()
         .denyAll();
   }
