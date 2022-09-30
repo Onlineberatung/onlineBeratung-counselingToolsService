@@ -43,11 +43,15 @@ public class BudibaseApiService {
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
-    return (AppsQueryResponse) budibaseApi.executeQuery(budibaseAppsQueryId, budibaseAppsAppId).getData();
+    AppsQueryResponse appsQueryResponse = new AppsQueryResponse();
+    appsQueryResponse.setData(budibaseApi.executeQuery(budibaseAppsQueryId, budibaseAppsAppId).getData());
+    return appsQueryResponse;
   }
 
   public ExportQueryResponse getInitialQuestionnaireExport() {
-    return (ExportQueryResponse) budibaseApi.executeQuery(budibaseExportQueryId, budibaseExportAppId).getData();
+    ExportQueryResponse exportQueryResponse = new ExportQueryResponse();
+    exportQueryResponse.setData(budibaseApi.executeQuery(budibaseExportQueryId, budibaseExportAppId).getData());
+    return exportQueryResponse;
   }
 
   public User getBudibaseUser(String adviceSeekerId) {
