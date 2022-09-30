@@ -2,9 +2,10 @@ package com.vi.counselingtoolsservice.api.service.budibase;
 
 import com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.DefaultApi;
+import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryResponse;
-import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.ExportQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignToolsRequest;
+import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.ExportQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import java.util.HashMap;
 import java.util.List;
@@ -43,14 +44,19 @@ public class BudibaseApiService {
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
+    List<App> appList = budibaseApi.executeQuery(budibaseAppsQueryId, budibaseAppsAppId).getData()
+        .stream()
+        .map(dataObject -> (App) dataObject)
+        .collect(Collectors.toList());
     AppsQueryResponse appsQueryResponse = new AppsQueryResponse();
-    appsQueryResponse.setData(budibaseApi.executeQuery(budibaseAppsQueryId, budibaseAppsAppId).getData());
+    appsQueryResponse.setData(appList);
     return appsQueryResponse;
   }
 
   public ExportQueryResponse getInitialQuestionnaireExport() {
     ExportQueryResponse exportQueryResponse = new ExportQueryResponse();
-    exportQueryResponse.setData(budibaseApi.executeQuery(budibaseExportQueryId, budibaseExportAppId).getData());
+    exportQueryResponse.setData(
+        budibaseApi.executeQuery(budibaseExportQueryId, budibaseExportAppId).getData());
     return exportQueryResponse;
   }
 
@@ -76,7 +82,7 @@ public class BudibaseApiService {
     return "us_" + adviceSeekerId;
   }
 
-  @Bean(name="budibaseClientWithApiKey")
+  @Bean(name = "budibaseClientWithApiKey")
   public DefaultApi buildBudibaseApiClient() {
     DefaultApi api = new DefaultApi();
     com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient apiClient = new ApiClient();
