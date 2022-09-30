@@ -3,22 +3,18 @@ package com.vi.counselingtoolsservice.api.service.budibase;
 import com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.DefaultApi;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryResponse;
+import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.ExportQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignToolsRequest;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.RequestScope;
 
 @Service
 @Slf4j
@@ -29,6 +25,12 @@ public class BudibaseApiService {
 
   @Value("${budibase.apps.query.id}")
   private String budibaseAppsQueryId;
+
+  @Value("${budibase.exportApp.id}")
+  private String budibaseExportAppId;
+
+  @Value("${budibase.export.query.id}")
+  private String budibaseExportQueryId;
 
   @Value("${budibase.api.key}")
   private String budibaseApiKey;
@@ -41,7 +43,11 @@ public class BudibaseApiService {
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
-    return budibaseApi.getApps(budibaseAppsQueryId, budibaseAppsAppId);
+    return (AppsQueryResponse) budibaseApi.executeQuery(budibaseAppsQueryId, budibaseAppsAppId).getData();
+  }
+
+  public ExportQueryResponse getInitialQuestionnaireExport() {
+    return (ExportQueryResponse) budibaseApi.executeQuery(budibaseExportQueryId, budibaseExportAppId).getData();
   }
 
   public User getBudibaseUser(String adviceSeekerId) {

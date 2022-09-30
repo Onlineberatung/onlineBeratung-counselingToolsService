@@ -7,8 +7,8 @@ info:
 paths:
   /api/public/v1/queries/{queryId}:
     post:
-      summary: Get all available consulting apps
-      operationId: getApps
+      summary: Execute budibase Query
+      operationId: executeQuery
       parameters:
         - name: queryId
           in: path
@@ -28,7 +28,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppsQueryResponse'
+                $ref: '#/components/schemas/QueryResponse'
       security:
         - ApiKeyAuth: [ ]
   /api/public/v1/users/{budibaseUserId}:
@@ -97,6 +97,10 @@ components:
           type: string
         type:
           type: string
+    QueryResponse:
+      oneOf:
+        - $ref: '#/components/schemas/AppsQueryResponse'
+        - $ref: '#/components/schemas/ExportQueryResponse'
     AppsQueryResponse:
       type: object
       properties:
@@ -104,6 +108,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/App'
+    ExportQueryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
     AssignToolsRequest:
       type: object
       properties:

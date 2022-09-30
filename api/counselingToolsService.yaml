@@ -74,6 +74,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ToolsListResponse'
+  /tools/exportInitialQuestionnaire:
+    get:
+      tags:
+        - budibase-controller
+      summary: Get a data export for the initial questionnaire answers of all users
+      operationId: exportInitialQuestionnaire
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - Bearer: [ ]
 components:
   schemas:
     ToolsListResponse:

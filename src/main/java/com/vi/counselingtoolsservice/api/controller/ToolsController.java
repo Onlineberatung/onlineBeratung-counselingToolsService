@@ -39,6 +39,11 @@ public class ToolsController implements ToolsApi {
   }
 
   @Override
+  public ResponseEntity<Object> exportInitialQuestionnaire() {
+    return new ResponseEntity<>(toolsFacade.getInitialQuestionnaireExport(), HttpStatus.OK);
+  }
+
+  @Override
   public ResponseEntity<Void> redirectToTool(String consultantId, String toolPath) {
     budibaseApiService.assignConsultantTools(consultantId);
     return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
