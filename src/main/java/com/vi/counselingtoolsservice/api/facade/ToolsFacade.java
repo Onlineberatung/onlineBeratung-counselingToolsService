@@ -58,7 +58,6 @@ public class ToolsFacade {
   public List<Object> getInitialQuestionnaireExport() {
     List<HashMap<String, String>> export = new ArrayList<>();
     List<Object> exportData = budibaseApiService.getInitialQuestionnaireExport().getData();
-
     return exportData;
   }
 

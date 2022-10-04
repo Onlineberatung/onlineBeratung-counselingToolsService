@@ -1,5 +1,8 @@
 package com.vi.counselingtoolsservice.api.service.budibase;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.DefaultApi;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
@@ -7,10 +10,13 @@ import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryRe
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignToolsRequest;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.ExportQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
+import java.io.DataInput;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,20 +50,11 @@ public class BudibaseApiService {
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
-    List<App> appList = budibaseApi.executeQuery(budibaseAppsQueryId, budibaseAppsAppId).getData()
-        .stream()
-        .map(dataObject -> (App) dataObject)
-        .collect(Collectors.toList());
-    AppsQueryResponse appsQueryResponse = new AppsQueryResponse();
-    appsQueryResponse.setData(appList);
-    return appsQueryResponse;
+    return budibaseApi.getApps(budibaseAppsQueryId, budibaseAppsAppId);
   }
 
   public ExportQueryResponse getInitialQuestionnaireExport() {
-    ExportQueryResponse exportQueryResponse = new ExportQueryResponse();
-    exportQueryResponse.setData(
-        budibaseApi.executeQuery(budibaseExportQueryId, budibaseExportAppId).getData());
-    return exportQueryResponse;
+    return budibaseApi.getExport(budibaseExportQueryId, budibaseExportAppId);
   }
 
   public User getBudibaseUser(String adviceSeekerId) {
