@@ -123,10 +123,6 @@ components:
           type: string
         type:
           type: string
-    QueryResponse:
-      oneOf:
-        - $ref: '#/components/schemas/AppsQueryResponse'
-        - $ref: '#/components/schemas/ExportQueryResponse'
     AppsQueryResponse:
       type: object
       properties:

@@ -39,7 +39,7 @@ public class ToolsController implements ToolsApi {
   }
 
   @Override
-  public ResponseEntity<Object> exportInitialQuestionnaire() {
+  public ResponseEntity<List<Object>> exportInitialQuestionnaire() {
     return new ResponseEntity<>(toolsFacade.getInitialQuestionnaireExport(), HttpStatus.OK);
   }
 
