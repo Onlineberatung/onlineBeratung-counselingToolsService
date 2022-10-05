@@ -10,6 +10,7 @@ import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryRe
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignToolsRequest;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.ExportQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
+import com.vi.counselingtoolsservice.config.BudibaseApiClient;
 import java.io.DataInput;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,14 +40,8 @@ public class BudibaseApiService {
   @Value("${budibase.export.query.id}")
   private String budibaseExportQueryId;
 
-  @Value("${budibase.api.key}")
-  private String budibaseApiKey;
-
-  @Value("${budibase.api.url}")
-  private String budibaseApiUrl;
-
   @Autowired
-  @Qualifier("budibaseClientWithApiKey")
+  @Qualifier("budibaseApiClient")
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
@@ -77,18 +72,6 @@ public class BudibaseApiService {
 
   private String convertAdviceSeekerId2BudibaseUserId(String adviceSeekerId) {
     return "us_" + adviceSeekerId;
-  }
-
-  @Bean(name = "budibaseClientWithApiKey")
-  public DefaultApi buildBudibaseApiClient() {
-    DefaultApi api = new DefaultApi();
-    com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient apiClient = new ApiClient();
-    apiClient.setBasePath(budibaseApiUrl);
-    apiClient.addDefaultHeader("Accept", "application/json");
-    apiClient.addDefaultHeader("Content-Type", "application/json");
-    apiClient.addDefaultHeader("x-budibase-api-key", budibaseApiKey);
-    api.setApiClient(apiClient);
-    return api;
   }
 
   public void assignConsultantTools(String consultantId) {

@@ -1,6 +1,5 @@
 package com.vi.counselingtoolsservice.config;
 
-import com.vi.counselingtoolsservice.api.authorization.Authority;
 import com.vi.counselingtoolsservice.api.authorization.Authority.AuthorityValue;
 import com.vi.counselingtoolsservice.api.authorization.RoleAuthorizationAuthorityMapper;
 import com.vi.counselingtoolsservice.filter.StatelessCsrfFilter;
@@ -63,14 +62,14 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .sessionAuthenticationStrategy(sessionAuthenticationStrategy()).and().authorizeRequests()
         .antMatchers(WHITE_LIST).permitAll()
+        .antMatchers("/tools/export/initialQuestionnaire").hasAnyAuthority(
+            AuthorityValue.TENANT_ADMIN)
         .antMatchers(HttpMethod.GET, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT, AuthorityValue.USER_DEFAULT)
         .antMatchers(HttpMethod.PUT, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT)
         .antMatchers("/tools/{consultantId:[0-9A-Za-z-]+}/{toolPath:[0-9A-Za-z-]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT)
-        .antMatchers("/tools/export/initialQuestionnaire").hasAnyAuthority(
-            AuthorityValue.TENANT_ADMIN)
         .anyRequest()
         .denyAll();
   }
