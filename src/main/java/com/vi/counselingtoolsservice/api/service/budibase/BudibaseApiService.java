@@ -1,24 +1,28 @@
 package com.vi.counselingtoolsservice.api.service.budibase;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.DefaultApi;
+import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignToolsRequest;
+import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.ExportQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
+import com.vi.counselingtoolsservice.config.BudibaseApiClient;
+import java.io.DataInput;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.RequestScope;
 
 @Service
 @Slf4j
@@ -30,18 +34,22 @@ public class BudibaseApiService {
   @Value("${budibase.apps.query.id}")
   private String budibaseAppsQueryId;
 
-  @Value("${budibase.api.key}")
-  private String budibaseApiKey;
+  @Value("${budibase.exportApp.id}")
+  private String budibaseExportAppId;
 
-  @Value("${budibase.api.url}")
-  private String budibaseApiUrl;
+  @Value("${budibase.export.query.id}")
+  private String budibaseExportQueryId;
 
   @Autowired
-  @Qualifier("budibaseClientWithApiKey")
+  @Qualifier("budibaseApiClient")
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
     return budibaseApi.getApps(budibaseAppsQueryId, budibaseAppsAppId);
+  }
+
+  public ExportQueryResponse getInitialQuestionnaireExport() {
+    return budibaseApi.getExport(budibaseExportQueryId, budibaseExportAppId);
   }
 
   public User getBudibaseUser(String adviceSeekerId) {
@@ -64,18 +72,6 @@ public class BudibaseApiService {
 
   private String convertAdviceSeekerId2BudibaseUserId(String adviceSeekerId) {
     return "us_" + adviceSeekerId;
-  }
-
-  @Bean(name="budibaseClientWithApiKey")
-  public DefaultApi buildBudibaseApiClient() {
-    DefaultApi api = new DefaultApi();
-    com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient apiClient = new ApiClient();
-    apiClient.setBasePath(budibaseApiUrl);
-    apiClient.addDefaultHeader("Accept", "application/json");
-    apiClient.addDefaultHeader("Content-Type", "application/json");
-    apiClient.addDefaultHeader("x-budibase-api-key", budibaseApiKey);
-    api.setApiClient(apiClient);
-    return api;
   }
 
   public void assignConsultantTools(String consultantId) {

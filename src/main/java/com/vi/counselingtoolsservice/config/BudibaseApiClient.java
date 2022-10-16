@@ -10,6 +10,9 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.Arrays;
 import java.util.Collection;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -17,10 +20,12 @@ import org.springframework.web.client.RestTemplate;
 /**
  * Extension of the generated Budibase API client to adapt the handling of parameter values.
  */
+@Component
 public class BudibaseApiClient extends com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient {
 
   private static final String FILTER_NAME = "filter";
 
+  @Autowired
   public BudibaseApiClient(RestTemplate restTemplate) {
     super(restTemplate);
   }

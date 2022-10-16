@@ -5,12 +5,12 @@ info:
   version: 0.2.0
 
 paths:
-  /api/public/v1/queries/{queryId}:
+  /api/public/v1/queries/{appsQueryId}:
     post:
-      summary: Get all available consulting apps
+      summary: Execute budibase Query
       operationId: getApps
       parameters:
-        - name: queryId
+        - name: appsQueryId
           in: path
           description: Query ID
           schema:
@@ -29,6 +29,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppsQueryResponse'
+      security:
+        - ApiKeyAuth: [ ]
+  /api/public/v1/queries/{exportQueryId}:
+    post:
+      summary: Execute budibase Query
+      operationId: getExport
+      parameters:
+        - name: exportQueryId
+          in: path
+          description: Query ID
+          schema:
+            type: string
+          required: true
+        - name: x-budibase-app-id
+          in: header
+          description: Budibase App ID
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportQueryResponse'
       security:
         - ApiKeyAuth: [ ]
   /api/public/v1/users/{budibaseUserId}:
@@ -104,6 +130,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/App'
+    ExportQueryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
     AssignToolsRequest:
       type: object
       properties:

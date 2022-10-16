@@ -2,12 +2,12 @@ package com.vi.counselingtoolsservice.config;
 
 import com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.DefaultApi;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
+import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -20,18 +20,14 @@ public class BudibaseApiClientConfig {
   @Value("${budibase.api.key}")
   private String budibaseApiKey;
 
-  @Bean(name = "budibaseApi")
-  public DefaultApi defaultApi() {
-    final RestTemplate restTemplate = new RestTemplate();
-    final HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-    final HttpClient httpClient = HttpClientBuilder.create()
-        .setRedirectStrategy(new LaxRedirectStrategy())
-        .build();
-    factory.setHttpClient(httpClient);
-    restTemplate.setRequestFactory(factory);
+  @Bean(name="budibaseApiClient")
+  @Primary
+  public DefaultApi defaultApi(@NonNull RestTemplate restTemplate) {
     ApiClient apiClient = new BudibaseApiClient(restTemplate);
     apiClient.setBasePath(this.budibaseApiUrl);
-    apiClient.setApiKey(this.budibaseApiKey);
+    apiClient.addDefaultHeader("Accept", "application/json");
+    apiClient.addDefaultHeader("Content-Type", "application/json");
+    apiClient.addDefaultHeader("x-budibase-api-key", budibaseApiKey);
     return new DefaultApi(apiClient);
   }
 

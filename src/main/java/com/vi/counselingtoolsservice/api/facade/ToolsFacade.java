@@ -6,6 +6,7 @@ import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,12 @@ public class ToolsFacade {
       tools.add(tool);
     }
     return tools;
+  }
+
+  public List<Object> getInitialQuestionnaireExport() {
+    List<HashMap<String, String>> export = new ArrayList<>();
+    List<Object> exportData = budibaseApiService.getInitialQuestionnaireExport().getData();
+    return exportData;
   }
 
   private Set<String> getSharedTools(String adviceSeekerId) {
