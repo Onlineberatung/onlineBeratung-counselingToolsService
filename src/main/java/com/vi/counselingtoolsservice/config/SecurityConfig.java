@@ -71,7 +71,7 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         AuthorityValue.CONSULTANT_DEFAULT)
         .antMatchers("/tools/{consultantId:[0-9A-Za-z-_]+}/{toolPath:[0-9A-Za-z-_]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT)
-        .antMatchers("/tools/sync/{newToolId:[0-9A-Za-z-_]+}/{oldToolId:[0-9A-Za-z-_]+}").hasAnyAuthority(
+        .antMatchers("/tools/sync").hasAnyAuthority(
         AuthorityValue.TECHNICAL_DEFAULT)
         .anyRequest()
         .denyAll();

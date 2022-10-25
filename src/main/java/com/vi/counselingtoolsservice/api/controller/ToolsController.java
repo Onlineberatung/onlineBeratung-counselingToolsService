@@ -3,6 +3,7 @@ package com.vi.counselingtoolsservice.api.controller;
 import com.vi.counselingtoolsservice.api.facade.ToolsFacade;
 import com.vi.counselingtoolsservice.api.model.InitialUserToolsImportRequest;
 import com.vi.counselingtoolsservice.api.model.Tool;
+import com.vi.counselingtoolsservice.api.model.ToolsSyncRequest;
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiService;
 import com.vi.counselingtoolsservice.generated.api.controller.ToolsApi;
 import java.util.List;
@@ -45,8 +46,8 @@ public class ToolsController implements ToolsApi {
   }
 
   @Override
-  public ResponseEntity<Void> syncUsersToTool(String newToolId, String oldToolId) {
-    toolsFacade.syncUsersToTool(newToolId, oldToolId);
+  public ResponseEntity<Void> syncUsersToTool(ToolsSyncRequest request) {
+    toolsFacade.syncUsersToTool(request.getNewToolId(), request.getOldToolId());
     return ResponseEntity.status(HttpStatus.OK).build();
   }
 

@@ -29,25 +29,18 @@ paths:
           description: successful operation
       security:
         - Bearer: []
-  /tools/sync/{newToolId}/{oldToolId}:
-    get:
+  /tools/sync:
+    post:
       tags:
         - budibase-controller
       summary: Sync user access to new version of tool
       operationId: syncUsersToTool
-      parameters:
-        - name: newToolId
-          in: path
-          description: New version of tool. ID of the tool
-          required: true
-          schema:
-            type: string
-        - name: oldToolId
-          in: path
-          description: Current version of tool that needs to be upgraded.
-          required: true
-          schema:
-            type: string
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/ToolsSyncRequest'
+        required: true
       responses:
         '200':
           description: successful operation
@@ -156,6 +149,13 @@ components:
       type: array
       items:
         type: string
+    ToolsSyncRequest:
+      type: object
+      properties:
+        newToolId:
+          type: string
+        oldToolId:
+          type: string
     InitialUserToolsImportRequest:
       properties:
         users:
