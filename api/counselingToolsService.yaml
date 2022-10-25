@@ -29,6 +29,54 @@ paths:
           description: successful operation
       security:
         - Bearer: []
+  /tools/sync/{newToolId}/{oldToolId}:
+    get:
+      tags:
+        - budibase-controller
+      summary: Sync user access to new version of tool
+      operationId: syncUsersToTool
+      parameters:
+        - name: newToolId
+          in: path
+          description: New version of tool. ID of the tool
+          required: true
+          schema:
+            type: string
+        - name: oldToolId
+          in: path
+          description: Current version of tool that needs to be upgraded.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - Bearer: []
+  /tools/import/{toolId}:
+    put:
+      tags:
+        - budibase-controller
+      summary: Initial import of users
+      operationId: initialImport
+      parameters:
+        - name: toolId
+          in: path
+          description: New version of tool.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/InitialUserToolsImportRequest'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+      security:
+        - Bearer: [ ]
   /tools/{adviceSeekerId}:
     get:
       tags:
@@ -95,7 +143,22 @@ components:
           type: boolean
         sharedWithConsultant:
           type: boolean
+    UserToolsImport:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        value:
+          type: string
     AssignToolsRequest:
       type: array
       items:
         type: string
+    InitialUserToolsImportRequest:
+      properties:
+        users:
+          type: array
+          items:
+            type: '#UserToolsImport'
