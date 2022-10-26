@@ -2,11 +2,11 @@ package com.vi.counselingtoolsservice.api.facade;
 
 import com.vi.counselingtoolsservice.api.model.Tool;
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiService;
-import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiServiceTest;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.UserData;
+import com.vi.counselingtoolsservice.port.out.UserToolsRepository;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +35,9 @@ public class ToolsFacadeTest {
 
   @Mock
   private BudibaseApiService budibaseApiService;
+
+  @Mock
+  private UserToolsRepository userToolsRepository;
 
   @Before
   public void setup(){

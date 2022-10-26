@@ -63,12 +63,16 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
     httpSecurity.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .sessionAuthenticationStrategy(sessionAuthenticationStrategy()).and().authorizeRequests()
         .antMatchers(WHITE_LIST).permitAll()
+        .antMatchers(HttpMethod.PUT, "/tools/import/{toolId:[0-9A-Za-z-_]+}").hasAnyAuthority(
+        AuthorityValue.TECHNICAL_DEFAULT)
         .antMatchers(HttpMethod.GET, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT, AuthorityValue.USER_DEFAULT)
         .antMatchers(HttpMethod.PUT, "/tools/{adviceSeekerId:[0-9A-Za-z-]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT)
-        .antMatchers("/tools/{consultantId:[0-9A-Za-z-]+}/{toolPath:[0-9A-Za-z-]+}").hasAnyAuthority(
+        .antMatchers("/tools/{consultantId:[0-9A-Za-z-_]+}/{toolPath:[0-9A-Za-z-_]+}").hasAnyAuthority(
         AuthorityValue.CONSULTANT_DEFAULT)
+        .antMatchers("/tools/sync").hasAnyAuthority(
+        AuthorityValue.TECHNICAL_DEFAULT)
         .anyRequest()
         .denyAll();
   }
