@@ -103,7 +103,7 @@ public class ToolsFacade {
     return URI.create(budibaseAppBase + "/app/" + toolPath + "?userId=" + userId);
   }
 
-  public void syncUsersToTool(String newToolId, String oldToolId){
+  public void approveUsersAccessToTool(String newToolId, String oldToolId){
     Iterable<UserTools> authorisations = userToolsRepository.findAll();
     authorisations.forEach(userTools -> {
       if (userTools.getTools().contains(oldToolId)) {

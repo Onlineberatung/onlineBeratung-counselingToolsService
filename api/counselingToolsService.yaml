@@ -33,13 +33,13 @@ paths:
     post:
       tags:
         - budibase-controller
-      summary: Sync user access to new version of tool
-      operationId: syncUsersToTool
+      summary: Approve user access to new version of tool
+      operationId: approveUsersAccessToTool
       requestBody:
         content:
           'application/json':
             schema:
-              $ref: '#/components/schemas/ToolsSyncRequest'
+              $ref: '#/components/schemas/ApproveUsersAccessToToolRequest'
         required: true
       responses:
         '200':
@@ -50,12 +50,12 @@ paths:
     put:
       tags:
         - budibase-controller
-      summary: Initial import of users
+      summary: Initial import of users from budibase export
       operationId: initialImport
       parameters:
         - name: toolId
           in: path
-          description: New version of tool.
+          description: Id of tool.
           required: true
           schema:
             type: string
@@ -149,7 +149,7 @@ components:
       type: array
       items:
         type: string
-    ToolsSyncRequest:
+    ApproveUsersAccessToToolRequest:
       type: object
       properties:
         newToolId:
