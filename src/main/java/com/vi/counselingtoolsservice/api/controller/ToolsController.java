@@ -1,9 +1,10 @@
 package com.vi.counselingtoolsservice.api.controller;
 
 import com.vi.counselingtoolsservice.api.facade.ToolsFacade;
+import com.vi.counselingtoolsservice.api.model.ApproveUsersAccessToToolRequest;
+import com.vi.counselingtoolsservice.api.model.InitialUserToolsImportRequest;
 import com.vi.counselingtoolsservice.api.model.Tool;
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiService;
-import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import com.vi.counselingtoolsservice.generated.api.controller.ToolsApi;
 import java.util.List;
 import javax.validation.Valid;
@@ -33,8 +34,7 @@ public class ToolsController implements ToolsApi {
   @Override
   public ResponseEntity<List<Tool>> assignAdviceSeekerTools(String adviceSeekerId,
       @Valid List<String> tools) {
-    User user = budibaseApiService.assignTools2OnlineBeratungUser(adviceSeekerId, tools);
-    return new ResponseEntity<>(toolsFacade.getAssignedTools(user.getData().getId()),
+    return new ResponseEntity<>(toolsFacade.assignAdviceSeekerTools(adviceSeekerId, tools),
         HttpStatus.OK);
   }
 
@@ -43,5 +43,18 @@ public class ToolsController implements ToolsApi {
     budibaseApiService.assignConsultantTools(consultantId);
     return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
         .location(toolsFacade.getToolUrl(toolPath)).build();
+  }
+
+  @Override
+  public ResponseEntity<Void> approveUsersAccessToTool(ApproveUsersAccessToToolRequest request) {
+    toolsFacade.approveUsersAccessToTool(request.getNewToolId(), request.getOldToolId());
+    return ResponseEntity.status(HttpStatus.OK).build();
+  }
+
+  @Override
+  public ResponseEntity<Void> initialImport(String toolId,
+      @Valid InitialUserToolsImportRequest initialUserToolsImportRequest) {
+    toolsFacade.initialImport(toolId, initialUserToolsImportRequest);
+    return ResponseEntity.status(HttpStatus.OK).build();
   }
 }
