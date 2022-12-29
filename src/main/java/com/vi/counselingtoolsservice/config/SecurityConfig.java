@@ -31,7 +31,7 @@ import org.springframework.security.web.csrf.CsrfFilter;
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
   public static final String[] WHITE_LIST =
-      new String[]{"/error"};
+      new String[]{"/error","budibaseproxy"};
 
   private final KeycloakClientRequestFactory keycloakClientRequestFactory;
 
