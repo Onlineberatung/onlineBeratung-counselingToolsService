@@ -59,8 +59,9 @@ public class ProxyController {
 
   private boolean isUnprotectedEndpoint(HttpServletRequest request) {
     String uri = request.getRequestURI();
+    //TODO: the default in login is probably the tenant in budibase
     return uri.contains("api/global/configs/checklist") || uri.contains("api/system/environment") || uri
-        .contains("api/bbtel/ping") || uri.contains("api/global/configs/public");
+        .contains("api/bbtel/ping") || uri.contains("api/global/configs/public") || uri.contains("api/global/auth/default/login");
   }
 
   private ResponseEntity executeNonModifiedRequest(String body, HttpMethod method,
