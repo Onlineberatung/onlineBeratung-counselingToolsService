@@ -39,9 +39,14 @@ public class ProxyController {
   @RequestMapping("/api/**")
   public ResponseEntity intercept(@RequestBody(required = false) String body,
       HttpMethod method, HttpServletRequest request) {
+
+    if(isUnprotectedEndpoint(request)){
+      return executeNonModifiedRequest(body, method, request);
+    }
+
     String role = extractRolesOfCurrentUsers(request);
     if (role.equals("admin")) {
-      return executeAdminRequest(body, method, request);
+      return executeNonModifiedRequest(body, method, request);
     } else if (role.equals("consultant")) {
       return executeConsultantRequest(body, method, request);
     } else if (role.equals("user")) {
@@ -52,7 +57,13 @@ public class ProxyController {
 
   }
 
-  private ResponseEntity executeAdminRequest(String body, HttpMethod method,
+  private boolean isUnprotectedEndpoint(HttpServletRequest request) {
+    String uri = request.getRequestURI();
+    return uri.contains("api/global/configs/checklist") || uri.contains("api/system/environment") || uri
+        .contains("api/bbtel/ping") || uri.contains("api/global/configs/public");
+  }
+
+  private ResponseEntity executeNonModifiedRequest(String body, HttpMethod method,
       HttpServletRequest request) {
     HttpHeaders headers = new HttpHeaders();
     Enumeration<String> headerNames = request.getHeaderNames();
