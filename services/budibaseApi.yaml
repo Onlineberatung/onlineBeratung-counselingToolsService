@@ -8,7 +8,7 @@ paths:
   /api/public/v1/queries/{queryId}:
     post:
       summary: Get all available consulting apps
-      operationId: getApps
+      operationId: executeBudibaseQuery
       parameters:
         - name: queryId
           in: path
@@ -22,13 +22,18 @@ paths:
           schema:
             type: string
           required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppsQueryResponse'
+                type: object
       security:
         - ApiKeyAuth: [ ]
   /api/public/v1/users/{budibaseUserId}:
@@ -132,3 +137,10 @@ components:
               type: boolean
             roles:
               type: object
+    ConsultantAssignedUsers:
+      type: object
+      properties:
+        data:
+          type: object
+        extra:
+          type: object

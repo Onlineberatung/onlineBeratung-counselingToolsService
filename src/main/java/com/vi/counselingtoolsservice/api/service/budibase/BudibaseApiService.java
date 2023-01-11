@@ -6,19 +6,15 @@ import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryRe
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignToolsRequest;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.RequestScope;
 
 @Service
 @Slf4j
@@ -41,11 +37,22 @@ public class BudibaseApiService {
   private DefaultApi budibaseApi;
 
   public AppsQueryResponse getApps() {
-    return budibaseApi.getApps(budibaseAppsQueryId, budibaseAppsAppId);
+    return (AppsQueryResponse) budibaseApi
+        .executeBudibaseQuery(budibaseAppsQueryId, budibaseAppsAppId, null);
   }
 
   public User getBudibaseUser(String adviceSeekerId) {
     return budibaseApi.getUser(convertAdviceSeekerId2BudibaseUserId(adviceSeekerId));
+  }
+
+  public List<String> getConsultantAssignedUsers(String consultantId) {
+    String body = "{\"parameters\":{\"bb_user_id\":"+ "\""+ consultantId+ "\"}}";
+    LinkedHashMap response;
+    response = (LinkedHashMap) budibaseApi
+        .executeBudibaseQuery("query_datasource_plus_dc92c76ee8214e649ff5d91f8c85dfca_a479a18c2df34b93bd8a52fba4b1f7a2", "app_bb7ec2c61a1e4ee7b4f217a852a976eb", body);
+    List data = (List) response.get("data");
+    return (List<String>) data.stream().map(el -> ((LinkedHashMap) el).get("user_id"))
+        .collect(Collectors.toList());
   }
 
   public User assignTools2OnlineBeratungUser(String adviceSeekerId, List<String> appIds) {
@@ -66,7 +73,7 @@ public class BudibaseApiService {
     return "us_" + adviceSeekerId;
   }
 
-  @Bean(name="budibaseClientWithApiKey")
+  @Bean(name = "budibaseClientWithApiKey")
   public DefaultApi buildBudibaseApiClient() {
     DefaultApi api = new DefaultApi();
     com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient apiClient = new ApiClient();
