@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.vi.counselingtoolsservice.config.SecurityConfig.WHITE_LIST;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -46,16 +45,18 @@ public class StatelessCsrfFilter extends OncePerRequestFilter {
   public void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
+    //TODO: implement this with white list
+    if(!request.getRequestURI().contains("api")){
+      if (requireCsrfProtectionMatcher.matches(request)) {
+        final String csrfTokenValue =
+            request.getHeader(this.csrfSecurityProperties.getHeader().getProperty());
+        String csrfCookieValue = retrieveCsrfCookieValue(request);
 
-    if (requireCsrfProtectionMatcher.matches(request)) {
-      final String csrfTokenValue =
-          request.getHeader(this.csrfSecurityProperties.getHeader().getProperty());
-      String csrfCookieValue = retrieveCsrfCookieValue(request);
-
-      if (isNull(csrfTokenValue) || !csrfTokenValue.equals(csrfCookieValue)) {
-        accessDeniedHandler.handle(
-            request, response, new AccessDeniedException("Missing or non-matching CSRF-token"));
-        return;
+        if (isNull(csrfTokenValue) || !csrfTokenValue.equals(csrfCookieValue)) {
+          accessDeniedHandler.handle(
+              request, response, new AccessDeniedException("Missing or non-matching CSRF-token"));
+          return;
+        }
       }
     }
     filterChain.doFilter(request, response);
