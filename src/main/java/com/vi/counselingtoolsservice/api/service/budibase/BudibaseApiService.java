@@ -2,9 +2,10 @@ package com.vi.counselingtoolsservice.api.service.budibase;
 
 import com.vi.counselingtoolsservice.budibaseApi.generated.ApiClient;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.DefaultApi;
-import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryResponse;
+import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AssignToolsRequest;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,9 +37,26 @@ public class BudibaseApiService {
   @Qualifier("budibaseClientWithApiKey")
   private DefaultApi budibaseApi;
 
-  public AppsQueryResponse getApps() {
-    return (AppsQueryResponse) budibaseApi
+  public List<App> getApps() {
+
+    LinkedHashMap<String, Object> result = (LinkedHashMap<String, Object>) budibaseApi
         .executeBudibaseQuery(budibaseAppsQueryId, budibaseAppsAppId, null);
+
+    List<LinkedHashMap<String, Object>> data = (List<LinkedHashMap<String, Object>>) result
+        .get("data");
+    List<App> apps = new ArrayList<>();
+    data.forEach(el -> {
+      App app = new App();
+      app.setId((Integer) el.get("id"));
+      app.setUrl((String) el.get("url"));
+      app.setTitle((String) el.get("title"));
+      app.setDescription((String) el.get("description"));
+      app.setBudibaseId((String) el.get("budibaseId"));
+      app.setType((String) el.get("type"));
+      apps.add(app);
+    });
+
+    return apps;
   }
 
   public User getBudibaseUser(String adviceSeekerId) {
@@ -46,10 +64,12 @@ public class BudibaseApiService {
   }
 
   public List<String> getConsultantAssignedUsers(String consultantId) {
-    String body = "{\"parameters\":{\"bb_user_id\":"+ "\""+ consultantId+ "\"}}";
+    String body = "{\"parameters\":{\"bb_user_id\":" + "\"" + consultantId + "\"}}";
     LinkedHashMap response;
     response = (LinkedHashMap) budibaseApi
-        .executeBudibaseQuery("query_datasource_plus_dc92c76ee8214e649ff5d91f8c85dfca_a479a18c2df34b93bd8a52fba4b1f7a2", "app_bb7ec2c61a1e4ee7b4f217a852a976eb", body);
+        .executeBudibaseQuery(
+            "query_datasource_plus_dc92c76ee8214e649ff5d91f8c85dfca_a479a18c2df34b93bd8a52fba4b1f7a2",
+            "app_bb7ec2c61a1e4ee7b4f217a852a976eb", body);
     List data = (List) response.get("data");
     return (List<String>) data.stream().map(el -> ((LinkedHashMap) el).get("user_id"))
         .collect(Collectors.toList());
@@ -86,7 +106,7 @@ public class BudibaseApiService {
   }
 
   public void assignConsultantTools(String consultantId) {
-    List<String> consultantAppIds = getApps().getData().stream()
+    List<String> consultantAppIds = getApps().stream()
         .filter(el -> "CONSULTANT_APP".equals(el.getType())).map(el -> el.getBudibaseId())
         .collect(Collectors.toList());
     assignTools2OnlineBeratungUser(consultantId, consultantAppIds);

@@ -102,13 +102,6 @@ components:
           type: string
         type:
           type: string
-    AppsQueryResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/App'
     AssignToolsRequest:
       type: object
       properties:
