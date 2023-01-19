@@ -86,8 +86,6 @@ public class BudibaseProxyService {
 
   @Cacheable(cacheNames = CacheManagerConfig.TOKEN_CACHE)
   public String extractRolesOfCurrentUsers(String queryStirng, String cookie) {
-    //TODO: this call validates also is the user logged in
-
     URI uri = null;
     try {
       uri = new URI("http", null, proxyServiceHost, proxyServicePort, null, null, null);
@@ -96,7 +94,7 @@ public class BudibaseProxyService {
           .query(queryStirng)
           .build(true).toUri();
     } catch (URISyntaxException e) {
-      // TODO: log me
+      //
     }
 
     RestTemplate restTemplate = new RestTemplate();

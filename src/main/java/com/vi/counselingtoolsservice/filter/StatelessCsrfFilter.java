@@ -1,7 +1,20 @@
 package com.vi.counselingtoolsservice.filter;
 
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import com.vi.counselingtoolsservice.config.CsrfSecurityProperties;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -10,23 +23,8 @@ import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 /**
  * This custom filter checks CSRF cookie and header token for equality
- *
  */
 
 /** This custom filter checks CSRF cookie and header token for equality. */
@@ -45,8 +43,7 @@ public class StatelessCsrfFilter extends OncePerRequestFilter {
   public void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    //TODO: implement this with white list
-    if(!request.getRequestURI().contains("api")){
+    if (isNotBudibaseRequest(request)) {
       if (requireCsrfProtectionMatcher.matches(request)) {
         final String csrfTokenValue =
             request.getHeader(this.csrfSecurityProperties.getHeader().getProperty());
@@ -60,6 +57,10 @@ public class StatelessCsrfFilter extends OncePerRequestFilter {
       }
     }
     filterChain.doFilter(request, response);
+  }
+
+  private boolean isNotBudibaseRequest(HttpServletRequest request) {
+    return !request.getRequestURI().contains("api");
   }
 
   private String retrieveCsrfCookieValue(HttpServletRequest request) {
