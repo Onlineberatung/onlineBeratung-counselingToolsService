@@ -46,7 +46,9 @@ public class BudibaseProxyService {
 
   public boolean isWhiteListed(HttpServletRequest request) {
     Set<String> whitelistedURIs = new HashSet<>(Arrays.asList(this.whitelistedURIs.split(";")));
-    return whitelistedURIs.contains(request.getRequestURI());
+    Optional<String> match = whitelistedURIs.stream()
+        .filter(el -> request.getRequestURI().contains(el)).findFirst();
+    return match.isPresent();
   }
 
   public String extractUserIdFromJWT(HttpServletRequest request) {

@@ -55,8 +55,9 @@ public class ProxyController {
       return executeUserRequest(body, method, request);
     }
 
-    throw new IllegalStateException("Unhandled call: TODO: log request");
-
+    log.error(
+        "User request is not whitelisted, neither the logged in user is of role admin, consultant, user");
+    throw new IllegalStateException();
   }
 
   private ResponseEntity executeNonModifiedRequest(String body, HttpMethod method,
@@ -80,7 +81,6 @@ public class ProxyController {
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     return execute(request, method, body, headers);
   }
-
 
   private ResponseEntity executeUserRequest(String body, HttpMethod method,
       HttpServletRequest request) {
@@ -115,7 +115,7 @@ public class ProxyController {
           .query(request.getQueryString())
           .build(true).toUri();
     } catch (URISyntaxException e) {
-      // TODO: log me
+      //
     }
 
     HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
@@ -128,6 +128,5 @@ public class ProxyController {
           .body(e.getResponseBodyAsString());
     }
   }
-
 
 }
