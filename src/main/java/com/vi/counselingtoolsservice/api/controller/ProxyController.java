@@ -1,21 +1,12 @@
 package com.vi.counselingtoolsservice.api.controller;
 
-import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiService;
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseProxyService;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.NotAllowedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -43,19 +34,19 @@ public class ProxyController {
   @Value("${budibase.api.key}")
   private String budibaseApiKey;
 
-  private final BudibaseApiService budibaseApiService;
   private final BudibaseProxyService budibaseProxyService;
 
   @RequestMapping("/api/**")
   public ResponseEntity intercept(@RequestBody(required = false) String body,
       HttpMethod method, HttpServletRequest request) {
 
-    if (isUnprotectedEndpoint(request)) {
+    if (budibaseProxyService.isWhiteListed(request)) {
       return executeNonModifiedRequest(body, method, request);
     }
 
     String role = budibaseProxyService
         .extractRolesOfCurrentUsers(request.getQueryString(), request.getHeader("cookie"));
+
     if (role.equals("admin")) {
       return executeNonModifiedRequest(body, method, request);
     } else if (role.equals("consultant")) {
@@ -66,21 +57,6 @@ public class ProxyController {
 
     throw new IllegalStateException("Unhandled call: TODO: log request");
 
-  }
-
-  private boolean isUnprotectedEndpoint(HttpServletRequest request) {
-    String uri = request.getRequestURI();
-    //TODO: Speak with Simon to add also the configs table here, hence all tables that don't have user data
-    return
-        //TODO: needs to be excluded from here
-        uri.contains("__apps")
-            || uri.contains("api/tables/ta_users")
-            || uri.contains("__user/search")
-            || uri.contains("__tools_consultant_access/search")
-            || uri.contains("__tools_documentation/search")
-        ;
-
-    //TODO: get decoded sessions needs to be refactored in the app. its catched for now with api/v2/queries
   }
 
   private ResponseEntity executeNonModifiedRequest(String body, HttpMethod method,
@@ -100,80 +76,17 @@ public class ProxyController {
 
   private ResponseEntity executeConsultantRequest(String body, HttpMethod method,
       HttpServletRequest request) {
-    String consultantId = extractUserIdFromJWT(request);
-    List<String> consultantAssignedUsers = budibaseApiService
-        .getConsultantAssignedUsers(consultantId);
-    String userId = extractUserIdFromBodyReadOperation(body);
-    Optional<String> matchedUserId = consultantAssignedUsers.stream()
-        .filter(el -> el.equals(userId)).findFirst();
-    if (matchedUserId.isEmpty()) {
-      throw new NotAllowedException(
-          "You don't have permissions to access user specific data for user with id: " + userId
-      );
-    }
-
+    budibaseProxyService.validateConsultantRequest(body, method, request);
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     return execute(request, method, body, headers);
   }
+
 
   private ResponseEntity executeUserRequest(String body, HttpMethod method,
       HttpServletRequest request) {
-
-    String userIdJWT = extractUserIdFromJWT(request);
-    String userIdBody;
-    if (HttpMethod.POST.equals(method) && request.getRequestURI().contains("rows")) {
-      userIdBody = extractUserIdFromBodyUpdateOperation(body);
-    } else {
-      userIdBody = extractUserIdFromBodyReadOperation(body);
-    }
-
-    if (!userIdJWT.equals(userIdBody)) {
-      throw new NotAllowedException(
-          "You are not allowed to access data for user_id " + userIdBody);
-    }
-
+    budibaseProxyService.validateUserRequest(body, method, request);
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     return execute(request, method, body, headers);
-  }
-
-
-  private String extractUserIdFromBodyReadOperation(String body) {
-    JSONObject bodyJSONObject = new JSONObject(body);
-    JSONObject query = (JSONObject) bodyJSONObject.get("query");
-    JSONObject equalOperation = (JSONObject) query.get("equal");
-
-    Map<String, Object> filters = equalOperation.toMap();
-    Optional<String> filterName = filters.keySet().stream().filter(el -> el.contains("user_id"))
-        .findFirst();
-
-    if (filterName.isEmpty()) {
-      throw new BadRequestException(
-          "You should not be able to reach this point, hence in case it's a datasource without user_id than it should be filtered out before");
-    }
-
-    return (String) filters.get(filterName.get());
-  }
-
-  private String extractUserIdFromBodyUpdateOperation(String body) {
-    JSONObject bodyJSONObject = new JSONObject(body);
-    return (String) bodyJSONObject.get("bb_user_id");
-  }
-
-  private String extractUserIdFromJWT(HttpServletRequest request) {
-    Base64.Decoder decoder = Base64.getUrlDecoder();
-
-    String[] cookies = request.getHeader("cookie").split(";");
-
-    Optional<String> authCookie = Arrays.stream(cookies)
-        .filter(cookie -> cookie.contains("budibase:auth") && !cookie.equals("budibase:auth="))
-        .findFirst();
-
-    String token = authCookie.get().split("=")[1];
-    String[] chunks = token.split("\\.");
-    String payload = new String(decoder.decode(chunks[1]));
-    JSONObject jsonObject = new JSONObject(payload);
-    String budibaseUserId = (String) jsonObject.get("userId");
-    return budibaseUserId.substring(3);
   }
 
   private HttpHeaders prepareHeadersForNonAdminUser(HttpServletRequest request) {

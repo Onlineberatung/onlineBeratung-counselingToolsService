@@ -33,7 +33,7 @@ public class ToolsFacade {
   @NonNull
   private final BudibaseApiService budibaseApiService;
 
-  @Value("${budibase.api.url}")
+  @Value("${budibase.public.url}")
   private String budibaseAppBase;
 
   @NonNull
