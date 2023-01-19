@@ -70,25 +70,13 @@ public class ProxyController {
   private boolean isUnprotectedEndpoint(HttpServletRequest request) {
     String uri = request.getRequestURI();
     //TODO: Speak with Simon to add also the configs table here, hence all tables that don't have user data
-    return uri.contains("api/global/configs/checklist") || uri.contains("api/system/environment")
-        || uri.contains("api/routing/client") || uri.contains("/api/applications")
-        || uri.contains("api/global/self") || uri.contains("api/self") || uri
-        .contains("api/bbtel/ping") || uri.contains("api/global/configs/public") || uri
-        .contains("api/global/auth/default/login") || uri
-        .contains("api/global/auth/default/oidc/configs")
-
-
-        || uri.contains("api/tables")
-        || uri.contains("api/queries")
-        || uri.contains("__apps")
-
+    return
         //TODO: needs to be excluded from here
-        || uri.contains("api/tables/ta_users")
-        || uri.contains("__user/search")
-        || uri.contains("__tools_consultant_access/search")
-        || uri.contains("__tools_documentation/search")
-        || uri.contains("api/v2/queries")
-
+        uri.contains("__apps")
+            || uri.contains("api/tables/ta_users")
+            || uri.contains("__user/search")
+            || uri.contains("__tools_consultant_access/search")
+            || uri.contains("__tools_documentation/search")
         ;
 
     //TODO: get decoded sessions needs to be refactored in the app. its catched for now with api/v2/queries
@@ -101,7 +89,7 @@ public class ProxyController {
     while (headerNames.hasMoreElements()) {
       String headerName = headerNames.nextElement();
       if (headerName.equals("accept-encoding")) {
-        headers.set("accept-encoding","identity");
+        headers.set("accept-encoding", "identity");
         continue;
       }
       headers.set(headerName, request.getHeader(headerName));
@@ -114,7 +102,7 @@ public class ProxyController {
     String consultantId = extractUserIdFromJWT(request);
     List<String> consultantAssignedUsers = budibaseApiService
         .getConsultantAssignedUsers(consultantId);
-    String userId = extractUserIdFromBody(body);
+    String userId = extractUserIdFromBodyReadOperation(body);
     Optional<String> matchedUserId = consultantAssignedUsers.stream()
         .filter(el -> el.equals(userId)).findFirst();
     if (matchedUserId.isEmpty()) {
@@ -129,11 +117,20 @@ public class ProxyController {
 
   private ResponseEntity executeUserRequest(String body, HttpMethod method,
       HttpServletRequest request) {
+
     String userIdJWT = extractUserIdFromJWT(request);
-    String userIdBody = extractUserIdFromBody(body);
+    String userIdBody;
+    if (HttpMethod.GET.equals(method)) {
+      userIdBody = extractUserIdFromBodyReadOperation(body);
+    } else if (HttpMethod.POST.equals(method)) {
+      userIdBody = extractUserIdFromBodyUpdateOperation(body);
+    } else {
+      throw new IllegalStateException("Unsupported HTTP method for user request");
+    }
 
     if (!userIdJWT.equals(userIdBody)) {
-      throw new NotAllowedException("You are not allowed to access data for user_id " + userIdBody);
+      throw new NotAllowedException(
+          "You are not allowed to access data for user_id " + userIdBody);
     }
 
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
@@ -141,7 +138,7 @@ public class ProxyController {
   }
 
 
-  private String extractUserIdFromBody(String body) {
+  private String extractUserIdFromBodyReadOperation(String body) {
     JSONObject bodyJSONObject = new JSONObject(body);
     JSONObject query = (JSONObject) bodyJSONObject.get("query");
     JSONObject equalOperation = (JSONObject) query.get("equal");
@@ -156,6 +153,11 @@ public class ProxyController {
     }
 
     return (String) filters.get(filterName.get());
+  }
+
+  private String extractUserIdFromBodyUpdateOperation(String body) {
+    JSONObject bodyJSONObject = new JSONObject(body);
+    return (String) bodyJSONObject.get("bb_user_id");
   }
 
   private String extractUserIdFromJWT(HttpServletRequest request) {
