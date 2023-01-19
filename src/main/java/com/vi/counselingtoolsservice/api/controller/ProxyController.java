@@ -1,12 +1,12 @@
 package com.vi.counselingtoolsservice.api.controller;
 
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiService;
+import com.vi.counselingtoolsservice.api.service.budibase.BudibaseProxyService;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +15,6 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -45,6 +44,7 @@ public class ProxyController {
   private String budibaseApiKey;
 
   private final BudibaseApiService budibaseApiService;
+  private final BudibaseProxyService budibaseProxyService;
 
   @RequestMapping("/api/**")
   public ResponseEntity intercept(@RequestBody(required = false) String body,
@@ -54,7 +54,8 @@ public class ProxyController {
       return executeNonModifiedRequest(body, method, request);
     }
 
-    String role = extractRolesOfCurrentUsers(request);
+    String role = budibaseProxyService
+        .extractRolesOfCurrentUsers(request.getQueryString(), request.getHeader("cookie"));
     if (role.equals("admin")) {
       return executeNonModifiedRequest(body, method, request);
     } else if (role.equals("consultant")) {
@@ -215,61 +216,5 @@ public class ProxyController {
     }
   }
 
-  private String extractRolesOfCurrentUsers(HttpServletRequest request) {
-    //TODO: this call validates also is the user logged in
-
-    URI uri = null;
-    try {
-      uri = new URI("http", null, proxyServiceHost, proxyServicePort, null, null, null);
-      uri = UriComponentsBuilder.fromUri(uri)
-          .path("api/global/self")
-          .query(request.getQueryString())
-          .build(true).toUri();
-    } catch (URISyntaxException e) {
-      // TODO: log me
-    }
-
-    RestTemplate restTemplate = new RestTemplate();
-    HttpHeaders headers = new HttpHeaders();
-    headers.add("cookie", request.getHeader("cookie"));
-    headers.add("accept", "application/json");
-    headers.add("content-type", "application/json");
-    headers.add("accept-encoding", "utf-8");
-    HttpEntity<String> httpEntity = new HttpEntity<>(headers);
-    ResponseEntity<String> exchange = restTemplate
-        .exchange(uri, HttpMethod.GET, httpEntity, String.class);
-    String response = exchange.getBody();
-    boolean isAdmin = isUserAdmin(response);
-    if (isAdmin) {
-      return "admin";
-    } else {
-      return identifyNonAdminUser(response);
-    }
-  }
-
-  private String identifyNonAdminUser(String response) {
-    JSONObject jsonObject = new JSONObject(response);
-    JSONObject thirdPartyProfile = (JSONObject) jsonObject.get("thirdPartyProfile");
-    JSONArray roles = ((JSONArray) thirdPartyProfile.get("groups"));
-    Iterator<Object> iterator = roles.iterator();
-    while (iterator.hasNext()) {
-      String next = (String) iterator.next();
-      if (next.equals("user") || next.equals("consultant")) {
-        return next;
-      }
-    }
-    throw new IllegalStateException(
-        "User is not in one of the following categories [user, consultant, admin]");
-  }
-
-  private boolean isUserAdmin(String response) {
-    JSONObject jsonObject = new JSONObject(response);
-    try {
-      Object isGlobal = ((JSONObject) jsonObject.get("admin")).get("global");
-      return (boolean) isGlobal;
-    } catch (Exception e) {
-      return false;
-    }
-  }
 
 }
