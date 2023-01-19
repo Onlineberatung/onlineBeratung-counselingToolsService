@@ -120,12 +120,10 @@ public class ProxyController {
 
     String userIdJWT = extractUserIdFromJWT(request);
     String userIdBody;
-    if (HttpMethod.GET.equals(method)) {
-      userIdBody = extractUserIdFromBodyReadOperation(body);
-    } else if (HttpMethod.POST.equals(method)) {
+    if (HttpMethod.POST.equals(method) && request.getRequestURI().contains("rows")) {
       userIdBody = extractUserIdFromBodyUpdateOperation(body);
     } else {
-      throw new IllegalStateException("Unsupported HTTP method for user request");
+      userIdBody = extractUserIdFromBodyReadOperation(body);
     }
 
     if (!userIdJWT.equals(userIdBody)) {
