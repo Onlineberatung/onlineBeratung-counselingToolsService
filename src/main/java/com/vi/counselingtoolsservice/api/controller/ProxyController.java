@@ -95,6 +95,7 @@ public class ProxyController {
     while (headerNames.hasMoreElements()) {
       String headerName = headerNames.nextElement();
       if (headerName.equals("accept-encoding") || headerName.equals("cookie")) {
+        headers.set("accept-encoding", "identity");
         continue;
       }
       headers.set(headerName, request.getHeader(headerName));
