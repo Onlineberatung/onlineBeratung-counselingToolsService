@@ -71,9 +71,14 @@ public class BudibaseProxyService {
   public void validateConsultantRequest(String body, HttpMethod method,
       HttpServletRequest request) {
     String consultantId = extractUserIdFromJWT(request);
+    String userId = extractUserIdFromBodyReadOperation(method, body);
+
+    if(consultantId.equals(userId)){
+      return;
+    }
+
     List<String> consultantAssignedUsers = budibaseApiService
         .getConsultantAssignedUsers(consultantId);
-    String userId = extractUserIdFromBodyReadOperation(method, body);
     Optional<String> matchedUserId = consultantAssignedUsers.stream()
         .filter(el -> el.equals(userId)).findFirst();
     if (matchedUserId.isEmpty()) {
