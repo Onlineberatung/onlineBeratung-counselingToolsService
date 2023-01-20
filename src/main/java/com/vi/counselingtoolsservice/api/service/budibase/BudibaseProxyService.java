@@ -71,9 +71,15 @@ public class BudibaseProxyService {
   public void validateConsultantRequest(String body, HttpMethod method,
       HttpServletRequest request) {
     String consultantId = extractUserIdFromJWT(request);
-    String userId = extractUserIdFromBodyReadOperation(method, body);
 
-    if(consultantId.equals(userId)){
+    String userId;
+    if (request.getRequestURI().contains("api/v2/queries")) {
+      userId = extractUserIdFromV2Query(body);
+    } else {
+      userId = extractUserIdFromBodyReadOperation(method, body);
+    }
+
+    if (consultantId.equals(userId)) {
       return;
     }
 
@@ -145,6 +151,12 @@ public class BudibaseProxyService {
     }
   }
 
+  private String extractUserIdFromV2Query(String body) {
+    JSONObject bodyJSONObject = new JSONObject(body);
+    JSONObject parameters = (JSONObject) bodyJSONObject.get("parameters");
+    return (String) parameters.get("bb_user_id");
+  }
+
   private String extractUserIdFromBodyReadOperation(HttpMethod method, String body) {
 
     if (method.equals(HttpMethod.GET)) {
@@ -169,7 +181,10 @@ public class BudibaseProxyService {
   public void validateUserRequest(String body, HttpMethod method, HttpServletRequest request) {
     String userIdJWT = extractUserIdFromJWT(request);
     String userIdBody;
-    if (HttpMethod.POST.equals(method) && request.getRequestURI().contains("rows")) {
+
+    if (request.getRequestURI().contains("api/v2/queries")) {
+      userIdBody = extractUserIdFromV2Query(body);
+    } else if (HttpMethod.POST.equals(method) && request.getRequestURI().contains("rows")) {
       userIdBody = extractUserIdFromBodyUpdateOperation(body);
     } else {
       userIdBody = extractUserIdFromBodyReadOperation(method, body);
