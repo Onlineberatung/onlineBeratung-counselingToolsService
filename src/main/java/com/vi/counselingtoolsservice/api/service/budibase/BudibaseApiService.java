@@ -101,6 +101,7 @@ public class BudibaseApiService {
     apiClient.addDefaultHeader("Accept", "application/json");
     apiClient.addDefaultHeader("Content-Type", "application/json");
     apiClient.addDefaultHeader("x-budibase-api-key", budibaseApiKey);
+    apiClient.addDefaultHeader("Accept-Encoding", "identity");
     api.setApiClient(apiClient);
     return api;
   }
