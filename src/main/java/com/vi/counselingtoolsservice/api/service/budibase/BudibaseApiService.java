@@ -24,6 +24,12 @@ public class BudibaseApiService {
   @Value("${budibase.appsApp.id}")
   private String budibaseAppsAppId;
 
+  @Value("${budibase.consultantViewApp.id}")
+  private String budibaseConsultantViewAppId;
+
+  @Value("${budibase.consultantViewApp.query.id}")
+  private String budibaseConsultatViewAppQueryId;
+
   @Value("${budibase.apps.query.id}")
   private String budibaseAppsQueryId;
 
@@ -68,8 +74,8 @@ public class BudibaseApiService {
     LinkedHashMap response;
     response = (LinkedHashMap) budibaseApi
         .executeBudibaseQuery(
-            "query_datasource_plus_dc92c76ee8214e649ff5d91f8c85dfca_a479a18c2df34b93bd8a52fba4b1f7a2",
-            "app_bb7ec2c61a1e4ee7b4f217a852a976eb", body);
+            budibaseConsultatViewAppQueryId,
+            budibaseConsultantViewAppId, body);
     List data = (List) response.get("data");
     return (List<String>) data.stream().map(el -> ((LinkedHashMap) el).get("user_id"))
         .collect(Collectors.toList());
