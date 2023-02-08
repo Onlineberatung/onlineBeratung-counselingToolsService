@@ -1,10 +1,13 @@
 package com.vi.counselingtoolsservice.api.controller;
 
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseProxyService;
+import com.vi.counselingtoolsservice.api.service.budibase.BusibaseProxyAuthService;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Enumeration;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.NotAllowedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,6 +39,8 @@ public class ProxyController {
 
   private final BudibaseProxyService budibaseProxyService;
 
+  private final BusibaseProxyAuthService busibaseProxyAuthService;
+
   @RequestMapping("/api/**")
   public ResponseEntity intercept(@RequestBody(required = false) String body,
       HttpMethod method, HttpServletRequest request) {
@@ -44,7 +49,7 @@ public class ProxyController {
       return executeNonModifiedRequest(body, method, request);
     }
 
-    String role = budibaseProxyService
+    String role = busibaseProxyAuthService
         .extractRolesOfCurrentUsers(request.getQueryString(), request.getHeader("cookie"));
 
     if (role.equals("admin")) {
@@ -57,7 +62,8 @@ public class ProxyController {
 
     log.error(
         "User request is not whitelisted, neither the logged in user is of role admin, consultant, user");
-    throw new IllegalStateException();
+    throw new NotAllowedException(
+        "User request is not whitelisted, neither the logged in user is of role admin, consultant, user");
   }
 
   private ResponseEntity executeNonModifiedRequest(String body, HttpMethod method,
@@ -116,7 +122,7 @@ public class ProxyController {
           .query(request.getQueryString())
           .build(true).toUri();
     } catch (URISyntaxException e) {
-      //
+      throw new BadRequestException();
     }
 
     HttpEntity<String> httpEntity = new HttpEntity<>(body, headers);
