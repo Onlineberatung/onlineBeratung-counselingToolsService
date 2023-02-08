@@ -33,7 +33,7 @@ public class ToolsFacade {
   @NonNull
   private final BudibaseApiService budibaseApiService;
 
-  @Value("${budibase.api.url}")
+  @Value("${budibase.public.url}")
   private String budibaseAppBase;
 
   @NonNull
@@ -44,7 +44,7 @@ public class ToolsFacade {
     Set<String> sharedTools = getSharedTools(adviceSeekerId);
     List<Tool> tools = new ArrayList<>();
 
-    List<App> apps = budibaseApiService.getApps().getData().stream()
+    List<App> apps = budibaseApiService.getApps().stream()
         .filter(el -> "ADVICESEEKER_APP".equals(el.getType()))
         .collect(Collectors.toList());
 

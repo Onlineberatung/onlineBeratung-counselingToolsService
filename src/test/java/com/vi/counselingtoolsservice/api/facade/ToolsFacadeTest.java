@@ -3,7 +3,6 @@ package com.vi.counselingtoolsservice.api.facade;
 import com.vi.counselingtoolsservice.api.model.Tool;
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseApiService;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.App;
-import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.AppsQueryResponse;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.User;
 import com.vi.counselingtoolsservice.budibaseApi.generated.web.model.UserData;
 import com.vi.counselingtoolsservice.port.out.UserToolsRepository;
@@ -56,7 +55,6 @@ public class ToolsFacadeTest {
     roles.put("app1", "BASIC");
     budibaseUserData.setRoles(roles);
     budibaseUser.setData(budibaseUserData);
-    AppsQueryResponse budibaseApps = new AppsQueryResponse();
     List<App> apps = new ArrayList<>();
     App app1 = new App();
     app1.setType("ADVICESEEKER_APP");
@@ -72,9 +70,8 @@ public class ToolsFacadeTest {
     App app3 = new App();
     app3.setType("CONSULTANT_APP");
     apps.add(app3);
-    budibaseApps.setData(apps);
     Mockito.when(budibaseApiService.getBudibaseUser(adviceSeekerId)).thenReturn(budibaseUser);
-    Mockito.when(budibaseApiService.getApps()).thenReturn(budibaseApps);
+    Mockito.when(budibaseApiService.getApps()).thenReturn(apps);
     List<Tool> assignedTools = toolsFacade.getAssignedTools(adviceSeekerId);
 
     Tool tool1 = assignedTools.get(0);
