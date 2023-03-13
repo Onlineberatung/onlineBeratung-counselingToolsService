@@ -81,11 +81,23 @@ public class BudibaseProxyServiceTest {
   }
 
   @Test
-  public void consultantRequest_Should_AllowCallForUserIdMatchingInTheCookie() {
+  public void consultantRequest_Should_AllowCallForGlobalSelfForUserIdMatchingInTheCookie() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
     when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    try {
+      validateConsultantRequestWithEmptyBody(method);
+    } catch (Exception e) {
+      fail("no exception should be thrown");
+    }
+  }
+
+  @Test
+  public void consultantRequest_Should_AllowCallForApiGlobalSelfIfNoUserIdProvidedInRequest() {
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    HttpMethod method = HttpMethod.GET;
+    when(request.getRequestURI()).thenReturn("/api/global/self");
     try {
       validateConsultantRequestWithEmptyBody(method);
     } catch (Exception e) {
@@ -172,10 +184,22 @@ public class BudibaseProxyServiceTest {
   }
 
   @Test
-  public void userRequest_Should_AllowCallForUserIdMatchingInTheCookie() {
+  public void userRequest_Should_AllowCallToGlobalSelfForUserIdMatchingInTheCookie() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
+    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    try {
+      executeValidateUserRequest(method);
+    } catch (Exception e) {
+      fail("no exception should be thrown");
+    }
+  }
+
+  @Test
+  public void userRequest_Should_AllowCallToGlobalSelfIfThereAreNoRequestParams() {
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    HttpMethod method = HttpMethod.GET;
     when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
     try {
       executeValidateUserRequest(method);
