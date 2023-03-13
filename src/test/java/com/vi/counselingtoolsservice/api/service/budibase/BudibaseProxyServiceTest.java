@@ -1,5 +1,8 @@
 package com.vi.counselingtoolsservice.api.service.budibase;
 
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.when;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
@@ -10,7 +13,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -42,9 +44,9 @@ public class BudibaseProxyServiceTest {
 
   @Test
   public void consultantRequest_Should_NotThrowException() {
-    Mockito.when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.POST;
-    Mockito.when(request.getRequestURI()).thenReturn("/api/v2/queries");
+    when(request.getRequestURI()).thenReturn("/api/v2/queries");
     Assertions.assertDoesNotThrow(
         () -> budibaseProxyService
             .validateConsultantRequest(getRequestBody(validBudibaseUser), method, request));
@@ -57,9 +59,9 @@ public class BudibaseProxyServiceTest {
     params.put("bb_user_id", "somecustomid");
     jsonBody.put("parameters", params);
     String body = jsonBody.toString();
-    Mockito.when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.POST;
-    Mockito.when(request.getRequestURI()).thenReturn("/api/v2/queries");
+    when(request.getRequestURI()).thenReturn("/api/v2/queries");
     Assertions.assertThrows(NotAllowedException.class,
         () -> budibaseProxyService.validateConsultantRequest(body, method, request));
   }
@@ -71,12 +73,44 @@ public class BudibaseProxyServiceTest {
     params.put("bb_user_id", "somecustomid");
     jsonBody.put("parameters", params);
     String body = jsonBody.toString();
-    Mockito.when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
-    Mockito.when(request.getRequestURI()).thenReturn("/api/v1/queries");
+    when(request.getRequestURI()).thenReturn("/api/v1/queries");
     Assertions.assertThrows(NotAllowedException.class,
         () -> budibaseProxyService.validateConsultantRequest(body, method, request));
   }
+
+  @Test
+  public void consultantRequest_Should_AllowCallForUserIdMatchingInTheCookie() {
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    HttpMethod method = HttpMethod.GET;
+    when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
+    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    try {
+      validateConsultantRequestWithEmptyBody(method);
+    } catch (Exception e) {
+      fail("no exception should be thrown");
+    }
+  }
+
+  @Test
+  public void consultantRequest_Should_ThrowExceptionIfAttemptToGetSelfDataForOtherUser() {
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    HttpMethod method = HttpMethod.GET;
+    when(request.getParameter("bb_user_id")).thenReturn("other user");
+    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    Assertions.assertThrows(NotAllowedException.class,
+        () -> validateConsultantRequestWithEmptyBody(method));
+  }
+
+  private void validateConsultantRequestWithEmptyBody(HttpMethod method) {
+    budibaseProxyService.validateConsultantRequest(getEmptyBody(), method, request);
+  }
+
+  private static String getEmptyBody() {
+    return new JSONObject().toString();
+  }
+
 
   @Test
   public void consultantRequest_Should_NotThrowNotAllowedException_When_QueryOwnData() {
@@ -86,12 +120,11 @@ public class BudibaseProxyServiceTest {
     equalJsonObject.put("user_id", validBudibaseUser);
     query.put("equal", equalJsonObject);
     jsonBody.put("query", query);
-    Mockito.when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.POST;
-    Mockito.when(request.getRequestURI()).thenReturn("/api/v1/queries");
+    when(request.getRequestURI()).thenReturn("/api/v1/queries");
     Assertions.assertDoesNotThrow(
-        () -> budibaseProxyService
-            .validateConsultantRequest(jsonBody.toString(), method, request));
+        () -> validateConsultantRequestWithNonEmptyBody(jsonBody, method));
   }
 
   @Test
@@ -101,34 +134,68 @@ public class BudibaseProxyServiceTest {
     JSONObject equalJsonObject = new JSONObject();
     query.put("equal", equalJsonObject);
     jsonBody.put("query", query);
-    Mockito.when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.POST;
-    Mockito.when(request.getRequestURI()).thenReturn("/api/v1/queries");
+    when(request.getRequestURI()).thenReturn("/api/v1/queries");
     Assertions.assertThrows(BadRequestException.class,
-        () -> budibaseProxyService
-            .validateConsultantRequest(jsonBody.toString(), method, request));
+        () -> validateConsultantRequestWithNonEmptyBody(jsonBody, method));
+  }
+
+  private void validateConsultantRequestWithNonEmptyBody(JSONObject jsonBody, HttpMethod method) {
+    budibaseProxyService
+        .validateConsultantRequest(jsonBody.toString(), method, request);
   }
 
 
   @Test
   public void userRequest_Should_ThrowNotAllowedException_When_UserIdInBodyDoesnotMatchesJWT(){
-    Mockito.when(request.getHeader("cookie")).thenReturn(validJWTToken);
-    Mockito.when(request.getRequestURI()).thenReturn("/some_datasource/rows");
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    when(request.getRequestURI()).thenReturn("/some_datasource/rows");
     JSONObject params = new JSONObject();
     params.put("bb_user_id", "customUserId");
     Assertions.assertThrows(NotAllowedException.class,
-        () -> budibaseProxyService
-            .validateUserRequest(params.toString(), HttpMethod.POST, request));
+        () -> executeValidateUserRequestWithBody(params));
+  }
+
+  private void executeValidateUserRequestWithBody(JSONObject params) {
+    budibaseProxyService
+        .validateUserRequest(params.toString(), HttpMethod.POST, request);
   }
 
   @Test
   public void userRequest_Should_NotThrowException_When_UserIdInBodyMatchesJWT(){
-    Mockito.when(request.getHeader("cookie")).thenReturn(validJWTToken);
-    Mockito.when(request.getRequestURI()).thenReturn("/some_datasource/rows");
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    when(request.getRequestURI()).thenReturn("/some_datasource/rows");
     JSONObject params = new JSONObject();
     params.put("bb_user_id", validBudibaseUser);
-    Assertions.assertDoesNotThrow(() -> budibaseProxyService
-            .validateUserRequest(params.toString(), HttpMethod.POST, request));
+    Assertions.assertDoesNotThrow(() -> executeValidateUserRequestWithBody(params));
+  }
+
+  @Test
+  public void userRequest_Should_AllowCallForUserIdMatchingInTheCookie() {
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    HttpMethod method = HttpMethod.GET;
+    when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
+    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    try {
+      executeValidateUserRequest(method);
+    } catch (Exception e) {
+      fail("no exception should be thrown");
+    }
+  }
+
+  @Test
+  public void userRequest_Should_ThrowExceptionIfAttemptToGetSelfDataForOtherUser() {
+    when(request.getHeader("cookie")).thenReturn(validJWTToken);
+    HttpMethod method = HttpMethod.GET;
+    when(request.getParameter("bb_user_id")).thenReturn("other user");
+    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    Assertions.assertThrows(NotAllowedException.class,
+        () -> executeValidateUserRequest(method));
+  }
+
+  private void executeValidateUserRequest(HttpMethod method) {
+    budibaseProxyService.validateUserRequest(getEmptyBody(), method, request);
   }
 
 
