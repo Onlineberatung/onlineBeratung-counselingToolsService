@@ -12,6 +12,7 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -62,6 +63,9 @@ public class BudibaseProxyService {
       userId = extractUserIdFromV2Query(body);
     } else if (request.getRequestURI().contains("api/global/self")) {
       userId = request.getParameter(BB_USER_ID);
+      if (StringUtils.isBlank(userId)) {
+        return;
+      }
       if (!consultantId.equals(userId)) {
         throw new NotAllowedException(
             "This endpoint can be accessed only on behalf of actually logged in user: " + userId);
@@ -119,6 +123,9 @@ public class BudibaseProxyService {
       userIdBody = extractUserIdFromV2Query(body);
     } else if (request.getRequestURI().contains("api/global/self")) {
       userIdBody = request.getParameter(BB_USER_ID);
+      if (StringUtils.isBlank(userIdBody)) {
+        return;
+      }
     } else if (HttpMethod.POST.equals(method) && request.getRequestURI().contains("rows")) {
       userIdBody = extractUserIdFromBodyUpdateOperation(body);
     } else {
