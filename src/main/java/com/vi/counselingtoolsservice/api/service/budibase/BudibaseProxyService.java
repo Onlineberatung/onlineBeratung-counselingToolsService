@@ -61,7 +61,7 @@ public class BudibaseProxyService {
     String userId;
     if (request.getRequestURI().contains("api/v2/queries")) {
       userId = extractUserIdFromV2Query(body);
-    } else if (request.getRequestURI().contains("api/global/self")) {
+    } else if (requestContainAnyOfThesePaths(request, "api/global/self", "api/self", "api/routing/client")) {
       userId = request.getParameter(BB_USER_ID);
       if (StringUtils.isBlank(userId)) {
         return;
@@ -86,6 +86,13 @@ public class BudibaseProxyService {
       throw new NotAllowedException(
           "You don't have permissions to access user specific data for user with id: " + userId);
     }
+  }
+
+  private boolean requestContainAnyOfThesePaths(HttpServletRequest request, String... resourcePaths) {
+
+    Optional<String> first = Arrays.stream(resourcePaths)
+        .filter(resourcePath -> request.getRequestURI().contains(resourcePath)).findFirst();
+    return first.isPresent();
   }
 
   private String extractUserIdFromV2Query(String body) {
@@ -121,7 +128,7 @@ public class BudibaseProxyService {
 
     if (request.getRequestURI().contains("api/v2/queries")) {
       userIdBody = extractUserIdFromV2Query(body);
-    } else if (request.getRequestURI().contains("api/global/self")) {
+    } else if (requestContainAnyOfThesePaths(request, "api/global/self", "api/self", "api/routing/client")) {
       userIdBody = request.getParameter(BB_USER_ID);
       if (StringUtils.isBlank(userIdBody)) {
         return;
