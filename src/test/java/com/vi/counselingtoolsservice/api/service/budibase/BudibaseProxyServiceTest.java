@@ -7,18 +7,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpMethod;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@RunWith(MockitoJUnitRunner.class)
-public class BudibaseProxyServiceTest {
+@ExtendWith(MockitoExtension.class)
+class BudibaseProxyServiceTest {
 
   @InjectMocks
   private BudibaseProxyService budibaseProxyService;
@@ -35,7 +37,7 @@ public class BudibaseProxyServiceTest {
       + "NiMTE1N2FjY2I0Mzk0YWRmYjBjNTVmOTUyMzgzNiIsImlhdCI6MTY3NTgxMzc2NH0."
       + "sC_4_UxyumM6_NcILJEpS1ouloNxND2QppKgKow2b4g;";
 
-  @Before
+  @BeforeEach
   public void setup() {
     ReflectionTestUtils.setField(budibaseProxyService, // inject into this object
         "budibaseApiService", // assign to this field
@@ -43,7 +45,7 @@ public class BudibaseProxyServiceTest {
   }
 
   @Test
-  public void consultantRequest_Should_NotThrowException() {
+  void consultantRequest_Should_NotThrowException() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.POST;
     when(request.getRequestURI()).thenReturn("/api/v2/queries");
@@ -53,7 +55,7 @@ public class BudibaseProxyServiceTest {
   }
 
   @Test
-  public void consultantRequest_Should_ThrowNotAllowedException_When_BodyParamIsNotInJWT() {
+  void consultantRequest_Should_ThrowNotAllowedException_When_BodyParamIsNotInJWT() {
     JSONObject jsonBody = new JSONObject();
     JSONObject params = new JSONObject();
     params.put("bb_user_id", "somecustomid");
@@ -67,7 +69,7 @@ public class BudibaseProxyServiceTest {
   }
 
   @Test
-  public void consultantRequest_Should_ThrowNotAllowedException_When_Doing_GET() {
+  void consultantRequest_Should_ThrowNotAllowedException_When_Doing_GET() {
     JSONObject jsonBody = new JSONObject();
     JSONObject params = new JSONObject();
     params.put("bb_user_id", "somecustomid");
@@ -80,12 +82,14 @@ public class BudibaseProxyServiceTest {
         () -> budibaseProxyService.validateConsultantRequest(body, method, request));
   }
 
-  @Test
-  public void consultantRequest_Should_AllowCallForGlobalSelfForUserIdMatchingInTheCookie() {
+
+  @ParameterizedTest
+  @ValueSource(strings = {"/api/global/self", "/api/self", "/api/routing/client"})
+  void consultantRequest_Should_AllowCallForApiSelfAndRoutingEndpoints_When_UserIdMatchingInTheCookie(String path) {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
-    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    when(request.getRequestURI()).thenReturn(path + "?bb_user_id="+ validBudibaseUser);
     try {
       validateConsultantRequestWithEmptyBody(method);
     } catch (Exception e) {
@@ -93,11 +97,12 @@ public class BudibaseProxyServiceTest {
     }
   }
 
-  @Test
-  public void consultantRequest_Should_AllowCallForApiGlobalSelfIfNoUserIdProvidedInRequest() {
+  @ParameterizedTest
+  @ValueSource(strings = {"/api/global/self", "/api/self", "/api/routing/client"})
+  void consultantRequest_Should_AllowCallForApiSelfAndRoutingEndpoints_When_NoUserIdProvidedInRequest(String path) {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
-    when(request.getRequestURI()).thenReturn("/api/global/self");
+    when(request.getRequestURI()).thenReturn(path);
     try {
       validateConsultantRequestWithEmptyBody(method);
     } catch (Exception e) {
@@ -105,27 +110,20 @@ public class BudibaseProxyServiceTest {
     }
   }
 
-  @Test
-  public void consultantRequest_Should_ThrowExceptionIfAttemptToGetSelfDataForOtherUser() {
+  @ParameterizedTest
+  @ValueSource(strings = {"/api/global/self", "/api/self", "/api/routing/client"})
+  void consultantRequest_Should_ThrowExceptionIfAttemptToGetSelfDataOrRoutingDataOnBehalfOfOtherUser(String path) {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getParameter("bb_user_id")).thenReturn("other user");
-    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    when(request.getRequestURI()).thenReturn(path + "bb_user_id=" + validBudibaseUser);
     Assertions.assertThrows(NotAllowedException.class,
         () -> validateConsultantRequestWithEmptyBody(method));
   }
 
-  private void validateConsultantRequestWithEmptyBody(HttpMethod method) {
-    budibaseProxyService.validateConsultantRequest(getEmptyBody(), method, request);
-  }
-
-  private static String getEmptyBody() {
-    return new JSONObject().toString();
-  }
-
 
   @Test
-  public void consultantRequest_Should_NotThrowNotAllowedException_When_QueryOwnData() {
+  void consultantRequest_Should_NotThrowNotAllowedException_When_QueryOwnData() {
     JSONObject jsonBody = new JSONObject();
     JSONObject query = new JSONObject();
     JSONObject equalJsonObject = new JSONObject();
@@ -140,7 +138,7 @@ public class BudibaseProxyServiceTest {
   }
 
   @Test
-  public void consultantRequest_Should_ThrowNotAllowedException_When_QueryBodyNotComplete() {
+  void consultantRequest_Should_ThrowNotAllowedException_When_QueryBodyNotComplete() {
     JSONObject jsonBody = new JSONObject();
     JSONObject query = new JSONObject();
     JSONObject equalJsonObject = new JSONObject();
@@ -153,14 +151,8 @@ public class BudibaseProxyServiceTest {
         () -> validateConsultantRequestWithNonEmptyBody(jsonBody, method));
   }
 
-  private void validateConsultantRequestWithNonEmptyBody(JSONObject jsonBody, HttpMethod method) {
-    budibaseProxyService
-        .validateConsultantRequest(jsonBody.toString(), method, request);
-  }
-
-
   @Test
-  public void userRequest_Should_ThrowNotAllowedException_When_UserIdInBodyDoesnotMatchesJWT(){
+  void userRequest_Should_ThrowNotAllowedException_When_UserIdInBodyDoesnotMatchesJWT(){
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     when(request.getRequestURI()).thenReturn("/some_datasource/rows");
     JSONObject params = new JSONObject();
@@ -169,13 +161,8 @@ public class BudibaseProxyServiceTest {
         () -> executeValidateUserRequestWithBody(params));
   }
 
-  private void executeValidateUserRequestWithBody(JSONObject params) {
-    budibaseProxyService
-        .validateUserRequest(params.toString(), HttpMethod.POST, request);
-  }
-
   @Test
-  public void userRequest_Should_NotThrowException_When_UserIdInBodyMatchesJWT(){
+  void userRequest_Should_NotThrowException_When_UserIdInBodyMatchesJWT(){
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     when(request.getRequestURI()).thenReturn("/some_datasource/rows");
     JSONObject params = new JSONObject();
@@ -183,12 +170,14 @@ public class BudibaseProxyServiceTest {
     Assertions.assertDoesNotThrow(() -> executeValidateUserRequestWithBody(params));
   }
 
-  @Test
-  public void userRequest_Should_AllowCallToGlobalSelfForUserIdMatchingInTheCookie() {
+
+  @ParameterizedTest
+  @ValueSource(strings = {"/api/global/self", "/api/self", "/api/routing/client"})
+  void userRequest_Should_AllowCallToApiSelfOrRouting_When_UserIdMatchingInTheCookie(String path) {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
-    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    when(request.getRequestURI()).thenReturn(path + "?bb_user_id=" + validBudibaseUser);
     try {
       executeValidateUserRequest(method);
     } catch (Exception e) {
@@ -196,11 +185,12 @@ public class BudibaseProxyServiceTest {
     }
   }
 
-  @Test
-  public void userRequest_Should_AllowCallToGlobalSelfIfThereAreNoRequestParams() {
+  @ParameterizedTest
+  @ValueSource(strings = {"/api/global/self", "/api/self", "/api/routing/client"})
+  void userRequest_Should_AllowCallToApiSelfOrRouting_When_ThereAreNoRequestParams(String path) {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
-    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    when(request.getRequestURI()).thenReturn(path + "?bb_user_id="+ validBudibaseUser);
     try {
       executeValidateUserRequest(method);
     } catch (Exception e) {
@@ -208,20 +198,38 @@ public class BudibaseProxyServiceTest {
     }
   }
 
-  @Test
-  public void userRequest_Should_ThrowExceptionIfAttemptToGetSelfDataForOtherUser() {
+  @ParameterizedTest
+  @ValueSource(strings = {"/api/global/self", "/api/self", "/api/routing/client"})
+  void userRequest_Should_ThrowException_When_AttemptToGetSelfOrRoutingDataOnBehalfOfOtherUser(String path) {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getParameter("bb_user_id")).thenReturn("other user");
-    when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
+    when(request.getRequestURI()).thenReturn(path + "?bb_user_id=" + validBudibaseUser);
     Assertions.assertThrows(NotAllowedException.class,
         () -> executeValidateUserRequest(method));
+  }
+
+  private void validateConsultantRequestWithEmptyBody(HttpMethod method) {
+    budibaseProxyService.validateConsultantRequest(getEmptyBody(), method, request);
+  }
+
+  private static String getEmptyBody() {
+    return new JSONObject().toString();
+  }
+
+  private void executeValidateUserRequestWithBody(JSONObject params) {
+    budibaseProxyService
+        .validateUserRequest(params.toString(), HttpMethod.POST, request);
+  }
+
+  private void validateConsultantRequestWithNonEmptyBody(JSONObject jsonBody, HttpMethod method) {
+    budibaseProxyService
+        .validateConsultantRequest(jsonBody.toString(), method, request);
   }
 
   private void executeValidateUserRequest(HttpMethod method) {
     budibaseProxyService.validateUserRequest(getEmptyBody(), method, request);
   }
-
 
   private String getRequestBody(String userId) {
     JSONObject jsonBody = new JSONObject();
