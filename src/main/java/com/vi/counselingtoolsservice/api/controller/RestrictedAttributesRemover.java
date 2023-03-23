@@ -42,25 +42,15 @@ public class RestrictedAttributesRemover {
   }
 
   static ResponseEntity removeRestrictedAttributesFromResponseAsMap(
-      ResponseEntity budibaseResponse, String... attributesNames) {
+      ResponseEntity budibaseResponse) {
     if (budibaseResponse.getBody() == null) {
       log.warn("Budibase response was null");
       return budibaseResponse;
     } else {
       var responseString = budibaseResponse.getBody().toString();
-      try {
-        Map<String, Object> map = JsonSerializationUtils.deserializeFromJsonString(responseString,
-            Map.class);
-        Arrays.stream(attributesNames)
-            .forEach(attributeName -> removeRecursively(map, attributeName));
-        String result = new ObjectMapper().writeValueAsString(map);
-        return new ResponseEntity(result,
-            budibaseResponse.getHeaders(), budibaseResponse.getStatusCode());
-      } catch (JsonProcessingException e) {
-        log.error("Budibase response was not parseable to string");
-        throw new NotAllowedException(
-            "Budibase API returned non-parsable json object, handling it as access denied");
-      }
+      String result = responseString.replaceAll("\"email\":[ ]+\".*\",", "");
+      String result2 = result.replaceAll("\"_id\":[ ]+\".*\",", "");
+      return new ResponseEntity(result2, budibaseResponse.getHeaders(), budibaseResponse.getStatusCode());
     }
   }
 

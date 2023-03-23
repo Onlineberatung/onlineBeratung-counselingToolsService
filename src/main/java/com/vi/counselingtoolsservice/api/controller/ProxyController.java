@@ -108,8 +108,9 @@ public class ProxyController {
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     var consultantBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
+      String string = consultantBudibaseResponse.getBody().toString();
       return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
-          consultantBudibaseResponse, "_id", "email");
+          consultantBudibaseResponse);
     } else {
       return consultantBudibaseResponse;
     }
@@ -122,7 +123,7 @@ public class ProxyController {
     var userBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
       return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
-          userBudibaseResponse, "_id", "email");
+          userBudibaseResponse);
     } else {
       return userBudibaseResponse;
     }
