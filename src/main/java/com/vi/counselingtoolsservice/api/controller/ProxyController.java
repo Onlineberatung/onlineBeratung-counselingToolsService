@@ -79,6 +79,12 @@ public class ProxyController {
     return restrictResponseBody(budibaseResponse);
   }
 
+  @RequestMapping("/api/global/configs/**")
+  public ResponseEntity interceptAndExecuteNonModifiedRequest(@RequestBody(required = false) String body,
+      HttpMethod method, HttpServletRequest request) {
+    return executeNonModifiedRequest(body, method, request);
+  }
+
   ResponseEntity restrictResponseBody(ResponseEntity budibaseResponse) {
     if (budibaseResponse.getBody() != null && budibaseResponse.getStatusCode().is2xxSuccessful()) {
       return removeRestrictedAttributesFromResponse(budibaseResponse);
