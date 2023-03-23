@@ -48,8 +48,8 @@ public class RestrictedAttributesRemover {
       return budibaseResponse;
     } else {
       var responseString = budibaseResponse.getBody().toString();
-      String result = responseString.replaceAll("\"email\":[ ]+\".*\",", "");
-      String result2 = result.replaceAll("\"_id\":[ ]+\".*\",", "");
+      String result = responseString.replaceAll("\"email\":[ ]+\".*\",", "").replaceAll("\"email\":\".*\",", "");
+      String result2 = result.replaceAll("\"_id\":[ ]+\".*\",", "").replaceAll("\"_id\":\".*\",", "");;
       return new ResponseEntity(result2, budibaseResponse.getHeaders(), budibaseResponse.getStatusCode());
     }
   }
