@@ -1,6 +1,5 @@
 package com.vi.counselingtoolsservice.api.service.budibase;
 
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import javax.servlet.http.HttpServletRequest;
@@ -81,35 +80,28 @@ public class BudibaseProxyServiceTest {
   }
 
   @Test
-  public void consultantRequest_Should_AllowCallForGlobalSelfForUserIdMatchingInTheCookie() {
+  public void consultantRequest_Should_ThrowExceptionForGlobalSelfForUserIdMatchingInTheCookie() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
-    when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
     when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
-    try {
-      validateConsultantRequestWithEmptyBody(method);
-    } catch (Exception e) {
-      fail("no exception should be thrown");
-    }
+    Assertions.assertThrows(NotAllowedException.class,
+        () -> budibaseProxyService.validateConsultantRequest(getEmptyBody(), method, request));
+
   }
 
   @Test
-  public void consultantRequest_Should_AllowCallForApiGlobalSelfIfNoUserIdProvidedInRequest() {
+  public void consultantRequest_Should_ThrowExceptionForApiGlobalSelfIfNoUserIdProvidedInRequest() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getRequestURI()).thenReturn("/api/global/self");
-    try {
-      validateConsultantRequestWithEmptyBody(method);
-    } catch (Exception e) {
-      fail("no exception should be thrown");
-    }
+    Assertions.assertThrows(NotAllowedException.class,
+        () -> validateConsultantRequestWithEmptyBody(method));
   }
 
   @Test
   public void consultantRequest_Should_ThrowExceptionIfAttemptToGetSelfDataForOtherUser() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
-    when(request.getParameter("bb_user_id")).thenReturn("other user");
     when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
     Assertions.assertThrows(NotAllowedException.class,
         () -> validateConsultantRequestWithEmptyBody(method));
@@ -187,32 +179,25 @@ public class BudibaseProxyServiceTest {
   public void userRequest_Should_AllowCallToGlobalSelfForUserIdMatchingInTheCookie() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
-    when(request.getParameter("bb_user_id")).thenReturn(validBudibaseUser);
     when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
-    try {
-      executeValidateUserRequest(method);
-    } catch (Exception e) {
-      fail("no exception should be thrown");
-    }
+
+    Assertions.assertThrows(NotAllowedException.class,
+        () -> executeValidateUserRequest(method));
   }
 
   @Test
-  public void userRequest_Should_AllowCallToGlobalSelfIfThereAreNoRequestParams() {
+  public void userRequest_Should_NotAllowCallToGlobalSelfIfThereAreNoRequestParams() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
     when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
-    try {
-      executeValidateUserRequest(method);
-    } catch (Exception e) {
-      fail("no exception should be thrown");
-    }
+    Assertions.assertThrows(NotAllowedException.class,
+        () -> executeValidateUserRequest(method));
   }
 
   @Test
   public void userRequest_Should_ThrowExceptionIfAttemptToGetSelfDataForOtherUser() {
     when(request.getHeader("cookie")).thenReturn(validJWTToken);
     HttpMethod method = HttpMethod.GET;
-    when(request.getParameter("bb_user_id")).thenReturn("other user");
     when(request.getRequestURI()).thenReturn("/api/global/self?bb_user_id="+ validBudibaseUser);
     Assertions.assertThrows(NotAllowedException.class,
         () -> executeValidateUserRequest(method));
