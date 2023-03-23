@@ -1,15 +1,10 @@
 package com.vi.counselingtoolsservice.api.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vi.counselingtoolsservice.api.service.budibase.BudibaseProxyService;
 import com.vi.counselingtoolsservice.api.service.budibase.BusibaseProxyAuthService;
-import com.vi.counselingtoolsservice.util.JsonSerializationUtils;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
@@ -33,7 +28,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class ProxyController {
 
-  public static final String CLIENT_SECRET = "clientSecret";
   @Value("${budibase.proxy.host}")
   private String proxyServiceHost;
 
@@ -87,43 +81,11 @@ public class ProxyController {
 
   ResponseEntity restrictResponseBody(ResponseEntity budibaseResponse) {
     if (budibaseResponse.getBody() != null && budibaseResponse.getStatusCode().is2xxSuccessful()) {
-      return removeRestrictedAttributesFromResponse(budibaseResponse);
+      return RestrictedAttributesRemover.removeRestrictedAttributesFromResponse(budibaseResponse, "clientSecret");
     } else {
       return budibaseResponse;
     }
   }
-
-  private ResponseEntity removeRestrictedAttributesFromResponse(ResponseEntity budibaseResponse) {
-    var responseString = budibaseResponse.getBody().toString();
-
-    try {
-      List<Map<String, Object>> list = JsonSerializationUtils.deserializeFromJsonString(responseString, List.class);
-      list.stream().forEach(map->removeRecursively(map, CLIENT_SECRET));
-      String result = new ObjectMapper().writeValueAsString(list);
-      return new ResponseEntity(result,
-          budibaseResponse.getHeaders(), budibaseResponse.getStatusCode());
-    }
-    catch (JsonProcessingException e) {
-      log.error("Budibase response was not parseable to string");
-      throw new NotAllowedException(
-          "Budibase API returned non-parsable json object, handling it as access denied");
-    }
-  }
-
-  private void removeRecursively(Map<String, Object> map, String attribute) {
-    map.values().forEach(elem -> removeElementFromMap(elem, attribute));
-    map.remove(attribute);
-  }
-
-  private void removeElementFromMap(Object elem, String attribute) {
-    if (elem instanceof Map) {
-      removeRecursively((Map) elem, attribute);
-    }
-    if (elem instanceof List) {
-      ((List<?>) elem).forEach(x -> removeElementFromMap(x, attribute));
-    }
-  }
-
 
   private ResponseEntity executeNonModifiedRequest(String body, HttpMethod method,
       HttpServletRequest request) {
@@ -144,14 +106,26 @@ public class ProxyController {
       HttpServletRequest request) {
     budibaseProxyService.validateConsultantRequest(body, method, request);
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
-    return execute(request, method, body, headers);
+    var consultantBudibaseResponse = execute(request, method, body, headers);
+    if (request.getRequestURI().contains("api/global/self")) {
+      return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
+          consultantBudibaseResponse, "_id", "email");
+    } else {
+      return consultantBudibaseResponse;
+    }
   }
 
   private ResponseEntity executeUserRequest(String body, HttpMethod method,
       HttpServletRequest request) {
     budibaseProxyService.validateUserRequest(body, method, request);
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
-    return execute(request, method, body, headers);
+    var userBudibaseResponse = execute(request, method, body, headers);
+    if (request.getRequestURI().contains("api/global/self")) {
+      return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
+          userBudibaseResponse, "_id", "email");
+    } else {
+      return userBudibaseResponse;
+    }
   }
 
   private HttpHeaders prepareHeadersForNonAdminUser(HttpServletRequest request) {
