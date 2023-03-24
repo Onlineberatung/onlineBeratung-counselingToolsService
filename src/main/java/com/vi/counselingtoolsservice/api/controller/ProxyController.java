@@ -109,8 +109,8 @@ public class ProxyController {
     var consultantBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
       String string = consultantBudibaseResponse.getBody().toString();
-      return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
-          consultantBudibaseResponse);
+      return new ResponseEntity("{}", consultantBudibaseResponse.getHeaders(), consultantBudibaseResponse.getStatusCode());
+
     } else {
       return consultantBudibaseResponse;
     }
@@ -123,8 +123,6 @@ public class ProxyController {
     var userBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
       return new ResponseEntity("{}", userBudibaseResponse.getHeaders(), userBudibaseResponse.getStatusCode());
-   /*   return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
-          userBudibaseResponse);*/
     } else {
       return userBudibaseResponse;
     }
