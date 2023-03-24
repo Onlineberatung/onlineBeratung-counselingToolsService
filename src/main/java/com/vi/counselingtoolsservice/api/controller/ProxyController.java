@@ -109,7 +109,6 @@ public class ProxyController {
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     var consultantBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
-      String string = consultantBudibaseResponse.getBody().toString();
       return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return consultantBudibaseResponse;

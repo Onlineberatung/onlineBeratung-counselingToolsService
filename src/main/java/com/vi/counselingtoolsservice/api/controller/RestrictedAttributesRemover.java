@@ -41,19 +41,6 @@ public class RestrictedAttributesRemover {
     }
   }
 
-  static ResponseEntity removeRestrictedAttributesFromResponseAsMap(
-      ResponseEntity budibaseResponse) {
-    if (budibaseResponse.getBody() == null) {
-      log.warn("Budibase response was null");
-      return budibaseResponse;
-    } else {
-      var responseString = budibaseResponse.getBody().toString();
-      String result = responseString.replaceAll("\"email\":[ ]+\".*\",", "").replaceAll("\"email\":\".*\",", "");
-      String result2 = result.replaceAll("\"_id\":[ ]+\".*\",", "").replaceAll("\"_id\":\".*\",", "");;
-      return new ResponseEntity(result2, budibaseResponse.getHeaders(), budibaseResponse.getStatusCode());
-    }
-  }
-
   private static void removeElementFromMap(Object elem, String attribute) {
     if (elem instanceof Map) {
       removeRecursively((Map) elem, attribute);

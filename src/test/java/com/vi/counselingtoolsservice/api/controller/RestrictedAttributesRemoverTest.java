@@ -40,34 +40,4 @@ class RestrictedAttributesRemoverTest {
     assertThat(responseEntity.getBody().toString()).doesNotContain("clientSecret");
     assertThat(responseEntity.getBody()).hasToString(originalJsonWithoutClientSecret);
   }
-
-  @Test
-  void removeRestrictedAttributesFromResponseAsMap_Should_FilterResponse() {
-
-    // given
-    ResponseEntity budibaseResponse = new ResponseEntity(globalSelfResponse, HttpStatus.OK);
-
-    // when
-    ResponseEntity responseEntity = RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(budibaseResponse);
-
-    // then
-    assertThat(responseEntity.getStatusCode()).isEqualTo(budibaseResponse.getStatusCode());
-    assertThat(responseEntity.getBody().toString()).doesNotContain("email");
-    assertThat(responseEntity.getBody().toString()).doesNotContain("_id");
-  }
-
-  @Test
-  void removeRestrictedAttributesFromResponseAsMap_Should_ReturnUnfilteredResponse() {
-
-    // given
-    ResponseEntity budibaseResponse = new ResponseEntity(globalSelfResponse, HttpStatus.OK);
-
-    // when
-    ResponseEntity responseEntity = RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(budibaseResponse);
-
-    // then
-    assertThat(responseEntity.getStatusCode()).isEqualTo(budibaseResponse.getStatusCode());
-    assertThat(responseEntity.getBody().toString()).doesNotContain("_id");
-    assertThat(responseEntity.getBody().toString()).doesNotContain("email");
-  }
 }
