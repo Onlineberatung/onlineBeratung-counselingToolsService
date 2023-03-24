@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -109,8 +110,7 @@ public class ProxyController {
     var consultantBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
       String string = consultantBudibaseResponse.getBody().toString();
-      return new ResponseEntity("{}", consultantBudibaseResponse.getHeaders(), consultantBudibaseResponse.getStatusCode());
-
+      return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return consultantBudibaseResponse;
     }
@@ -122,7 +122,7 @@ public class ProxyController {
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     var userBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
-      return new ResponseEntity("{}", userBudibaseResponse.getHeaders(), userBudibaseResponse.getStatusCode());
+      return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return userBudibaseResponse;
     }
