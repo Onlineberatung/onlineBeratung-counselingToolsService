@@ -62,14 +62,8 @@ public class BudibaseProxyService {
     if (request.getRequestURI().contains("api/v2/queries")) {
       userId = extractUserIdFromV2Query(body);
     } else if (request.getRequestURI().contains("api/global/self")) {
-      userId = request.getParameter(BB_USER_ID);
-      if (StringUtils.isBlank(userId)) {
-        return;
-      }
-      if (!consultantId.equals(userId)) {
         throw new NotAllowedException(
-            "This endpoint can be accessed only on behalf of actually logged in user: " + userId);
-      }
+            "This endpoint can be accessed only on behalf of admin user. ");
     } else {
       userId = extractUserIdFromBodyReadOperation(method, body);
     }
@@ -122,10 +116,8 @@ public class BudibaseProxyService {
     if (request.getRequestURI().contains("api/v2/queries")) {
       userIdBody = extractUserIdFromV2Query(body);
     } else if (request.getRequestURI().contains("api/global/self")) {
-      userIdBody = request.getParameter(BB_USER_ID);
-      if (StringUtils.isBlank(userIdBody)) {
-        return;
-      }
+      throw new NotAllowedException(
+          "This endpoint can be accessed only on behalf of admin user. ");
     } else if (HttpMethod.POST.equals(method) && request.getRequestURI().contains("rows")) {
       userIdBody = extractUserIdFromBodyUpdateOperation(body);
     } else {
