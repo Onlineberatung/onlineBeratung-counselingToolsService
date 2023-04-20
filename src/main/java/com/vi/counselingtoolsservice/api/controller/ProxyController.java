@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -108,8 +109,7 @@ public class ProxyController {
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     var consultantBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
-      return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
-          consultantBudibaseResponse, "_id", "email");
+      return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return consultantBudibaseResponse;
     }
@@ -121,8 +121,7 @@ public class ProxyController {
     HttpHeaders headers = prepareHeadersForNonAdminUser(request);
     var userBudibaseResponse = execute(request, method, body, headers);
     if (request.getRequestURI().contains("api/global/self")) {
-      return RestrictedAttributesRemover.removeRestrictedAttributesFromResponseAsMap(
-          userBudibaseResponse, "_id", "email");
+      return new ResponseEntity<>(HttpStatus.OK);
     } else {
       return userBudibaseResponse;
     }
